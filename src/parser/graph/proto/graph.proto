@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+message Vertex {
+  string id = 1;
+  string name = 2;
+}
+
+message Bracket {
+  string id = 1;
+  string type = 2;
+}
+
+message Terminal {
+  string id = 1;
+  string value = 2;
+}
+
+message Edge {
+  string id = 1;
+  string vertex1_id = 2;
+  string vertex2_id = 3;
+
+  oneof value {
+    string terminal_id = 4;
+    string bracket_id = 5;
+  }
+}
+
+message Graph {
+  repeated Vertex vertices = 1;
+  repeated Edge edges = 2;
+  string initial = 3;
+  repeated string final = 4;
+  repeated Terminal terminals = 5;
+  repeated Bracket brackets = 6;
+}
