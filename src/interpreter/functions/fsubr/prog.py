@@ -1,9 +1,8 @@
-from src.interpreter.models.values import NIL, Value
-from src.interpreter.models.signals import PlannerRuntimeError, PlannerFailure
+from src.interpreter.models.signals import PlannerRuntimeError
 from src.parser.ast_nodes import LListNode, IdentNode
 
 
-def prog(raw_args: list, interp) -> Value:
+def prog(raw_args: list, interp):
     if not raw_args:
         raise PlannerRuntimeError("PROG: отсутствует список переменных")
 
@@ -35,12 +34,8 @@ def prog(raw_args: list, interp) -> Value:
         if isinstance(node, IdentNode):
             labels[node.name] = i
 
-    gen = interp._eval_prog_bt(declared_names, init_bindings, labels, body_nodes)
-    try:
-        return next(gen)
-    except StopIteration:
-        raise PlannerFailure(message=interp._last_failure or NIL)
+    yield from interp._eval_prog_bt(declared_names, init_bindings, labels, body_nodes)
 
 
 def register(interp) -> None:
-    interp._fsubrs["PROG"] = lambda raw: prog(raw, interp)
+    interp._bt_fsubrs["PROG"] = lambda raw: prog(raw, interp)

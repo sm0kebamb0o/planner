@@ -13,7 +13,7 @@ from src.interpreter.trail import Trail, _UNBOUND
 from src.interpreter.env import Environment
 from src.interpreter.models.functions import PlannerFunction, SimpleParam, ListParams, ParamSpec
 from src.interpreter.models.values import Value, PlannerList, ScaleValue, BracketKind, NIL, T, _is_true
-from src.interpreter.models.signals import PlannerRuntimeError, PlannerFailure, _GoSignal, _ReturnSignal
+from src.interpreter.models.signals import PlannerRuntimeError, PlannerFailure, _GoSignal, _ReturnSignal, _ProgStepStatus
 
 
 class PlannerInterpreter:
@@ -54,6 +54,10 @@ class PlannerInterpreter:
                 msg = f.message if f.message is not None else NIL
                 self._last_failure = msg
                 print(f"=НЕУСПЕХ= {self._repr_value(msg)}")
+            except _GoSignal as go:
+                raise PlannerRuntimeError(
+                    f"GO: метка '{go.label}' не определена"
+                )
         
     # ------------------------------------------------------------------
     # Private methods
@@ -183,7 +187,12 @@ class PlannerInterpreter:
                 yield from self._eval_subr_bt(fn_name, node.args)
                 return
 
-            # TODO: Добавить обработку FSUBR
+            # Пользовательская функция в BT-режиме
+            if fn_name in self._functions:
+                yield from self._call_user_function_bt(
+                    self._functions[fn_name], node.args
+                )
+                return
 
         # Всё остальное: детерминированное вычисление, обёрнутое try/except
         try:
@@ -248,29 +257,115 @@ class PlannerInterpreter:
             is_prog=True,
         )
         try:
-            start = 0
+            forks: list[tuple[int, Iterator[Value]]] = []
+            cur: int = 0
+            last_val: Value = NIL
+
             while True:
-                try:
-                    found = False
-                    for val in self._eval_body_bt(body_nodes[start:]):
-                        found = True
+                if cur >= len(body_nodes):
+                    yield last_val
+                    next_cur, val, status = self._prog_step_back(forks, labels)
+                    if status is _ProgStepStatus.EXHAUSTED:
+                        return
+                    if status is _ProgStepStatus.RETURN:
                         yield val
                         return
-                    if not found:
-                        # Тело исчерпано — нет значений (неуспех)
+                    cur, last_val = next_cur, val
+                    continue
+
+                node = body_nodes[cur]
+                if isinstance(node, IdentNode) and node.name in labels:
+                    cur += 1
+                    continue
+
+                try:
+                    gen = self.eval_form_bt(node)
+                    val = next(gen)
+                except StopIteration:
+                    next_cur, val, status = self._prog_step_back(forks, labels)
+                    if status is _ProgStepStatus.EXHAUSTED:
                         return
-                    break
+                    if status is _ProgStepStatus.RETURN:
+                        yield val
+                        return
+                    cur, last_val = next_cur, val
+                    continue
                 except _GoSignal as go:
-                    # GO не откатывает трейл, просто перезапуск с метки
                     if go.label in labels:
-                        start = labels[go.label]
+                        cur = labels[go.label]
                         continue
+                    self._prog_close_all(forks)
                     raise
                 except _ReturnSignal as ret:
+                    self._prog_close_all(forks)
                     yield ret.value
                     return
+                except PlannerFailure as f:
+                    if f.target is not None:
+                        self._prog_close_all(forks)
+                        raise
+                    next_cur, val, status = self._prog_step_back(forks, labels)
+                    if status is _ProgStepStatus.EXHAUSTED:
+                        return
+                    if status is _ProgStepStatus.RETURN:
+                        yield val
+                        return
+                    cur, last_val = next_cur, val
+                    continue
+
+                forks.append((cur, gen))
+                last_val = val
+                cur += 1
         finally:
             self.env.pop_frame()
+
+    def _prog_step_back(
+        self,
+        forks: list[tuple[int, Iterator[Value]]],
+        labels: dict[str, int],
+    ) -> tuple[int, Value, _ProgStepStatus]:
+        while forks:
+            i, gen = forks[-1]
+            try:
+                val = next(gen)
+                return i + 1, val, _ProgStepStatus.OK
+            except StopIteration:
+                forks.pop()
+                try:
+                    gen.close()
+                except Exception:
+                    pass
+            except _GoSignal as go:
+                forks.pop()
+                try:
+                    gen.close()
+                except Exception:
+                    pass
+                if go.label in labels:
+                    return labels[go.label], NIL, _ProgStepStatus.GO
+                self._prog_close_all(forks)
+                raise
+            except _ReturnSignal as ret:
+                self._prog_close_all(forks)
+                return -1, ret.value, _ProgStepStatus.RETURN
+            except PlannerFailure as f:
+                forks.pop()
+                try:
+                    gen.close()
+                except Exception:
+                    pass
+                if f.target is not None:
+                    self._prog_close_all(forks)
+                    raise
+        return -1, NIL, _ProgStepStatus.EXHAUSTED
+
+    def _prog_close_all(self, forks: list[tuple[int, Iterator[Value]]]) -> None:
+        while forks:
+            _, gen = forks.pop()
+            try:
+                gen.close()
+            except Exception:
+                pass
 
     def _call_user_function(
         self, fn: PlannerFunction, raw_args: list[FormNode]
@@ -314,16 +409,71 @@ class PlannerInterpreter:
         self.env.push_frame(declared, bindings)
         try:
             return self.eval_form(fn.body)
+        except _GoSignal as go:
+            raise PlannerRuntimeError(
+                f"GO: метка '{go.label}' не определена (выход за границу LAMBDA)"
+            )
+        finally:
+            self.env.pop_frame()
+
+    def _call_user_function_bt(
+        self, fn: PlannerFunction, raw_args: list[FormNode]
+    ) -> Iterator[Value]:
+        if isinstance(fn.params, SimpleParam):
+            if fn.params.unevaluated:
+                bound_val: Value = PlannerList(
+                    elements=list(raw_args),
+                    kind=BracketKind.ROUND,
+                )
+            else:
+                bound_val = PlannerList(
+                    elements=[self.eval_form(a) for a in raw_args],
+                    kind=BracketKind.ROUND,
+                )
+            declared = [fn.params.name]
+            bindings = {fn.params.name: bound_val}
+        elif isinstance(fn.params, ListParams):
+            if len(fn.params.params) != len(raw_args):
+                raise PlannerRuntimeError(
+                    f"Функция '{fn.name}': ожидалось "
+                    f"{len(fn.params.params)} аргументов, "
+                    f"получено {len(raw_args)}"
+                )
+            declared = [name for name, _ in fn.params.params]
+            bindings = {}
+            for (pname, unevaluated), arg_node in zip(fn.params.params, raw_args):
+                if unevaluated:
+                    bindings[pname] = arg_node
+                else:
+                    bindings[pname] = self.eval_form(arg_node)
+        else:
+            raise PlannerRuntimeError("Неверная спецификация параметров")
+
+        self.env.push_frame(declared, bindings)
+        try:
+            yield from self.eval_form_bt(fn.body)
+        except _GoSignal as go:
+            raise PlannerRuntimeError(
+                f"GO: метка '{go.label}' не определена (выход за границу LAMBDA)"
+            )
         finally:
             self.env.pop_frame()
 
     def _record_undo_local(self, name: str) -> None:
-        if self.env.has_value(name):
-            old = self.env.get_local(name)
-            self._trail.push_undo(lambda n=name, o=old: self.env.set_local(n, o))
-        else:
-            # Переменная объявлена, но не имеет значения — после отката UNASSIGN
-            self._trail.push_undo(lambda n=name: self.env.unassign(n))
+        for frame in reversed(self.env._frames):
+            if name in frame.declared:
+                if name in frame.bindings:
+                    old = frame.bindings[name]
+                    self._trail.push_undo(
+                        lambda f=frame, n=name, o=old: f.bindings.__setitem__(n, o)
+                    )
+                else:
+                    self._trail.push_undo(
+                        lambda f=frame, n=name: f.bindings.pop(n, None)
+                    )
+                return
+        # Переменная нигде не описана — set_local тоже упадёт; no-op для баланса трейла.
+        self._trail.push_undo(lambda: None)
 
     def _record_undo_constant(self, name: str) -> None:
         if self.env.has_constant(name):

@@ -1,0 +1,23 @@
+[DEFINE ДИАГ (LAMBDA (V LV)
+  [PROG (H (H1 0))
+    [SET H [+ [LENGTH .LV] 1]]
+    [LOOP V1 .LV [ADD1 H1]
+      [UNFALSE [NEQ [ABS [- .H  .H1]]
+                    [ABS [- .V  .V1]]]]]])]
+
+[DEFINE Ф8 (LAMBDA ()
+  [PROG (V FV (LV ()) B E)
+    [SET FV (1 2 3 4 5 6 7 8)]
+    [FOR H 8
+      [SET V  [AMONG .FV]]
+      [ДИАГ .V .LV]
+      [SET LV (!.LV .V)]
+      [IS (!*B .V !*E) .FV]
+      [SET FV (!.B !.E)]]
+    .LV])]
+
+; First solution: [Ф8]  ->  (1 5 8 6 3 7 2 4)
+; vi is the column of the queen on row i.
+
+; Print all 92 solutions:
+[GATE [PRINT [Ф8]] [FAIL]]

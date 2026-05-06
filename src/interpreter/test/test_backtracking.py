@@ -479,6 +479,110 @@ class TestSUM(unittest.TestCase):
         lines, _ = _run_source(src)
         self.assertTrue(any("НЕУСПЕХ" in l for l in lines))
 
+    def test_sum_first_solution(self):
+        """Первое решение [SUM (6 3 2 1) 5] = (3 2)."""
+        src = """
+[DEFINE SUM (LAMBDA (L N)
+  [PROG (K (M ()) (S 0))
+    A [SET K  [AMONG .L]]
+      [SET M  (!.M .K)]
+      [SET S  [+ .S .K]]
+      [COND ([EQ .S .N] .M)
+            ([LT .S .N] [GO A])
+            (T [FAIL])]])]
+[SUM (6 3 2 1) 5]
+"""
+        self.assertEqual(_eval_last(src), "(3 2)")
+
+    def test_sum_length4(self):
+        """Решение длины 4 для [SUM (6 3 2 1) 5] = (2 1 1 1)."""
+        src = """
+[DEFINE SUM (LAMBDA (L N)
+  [PROG (K (M ()) (S 0))
+    A [SET K  [AMONG .L]]
+      [SET M  (!.M .K)]
+      [SET S  [+ .S .K]]
+      [COND ([EQ .S .N] .M)
+            ([LT .S .N] [GO A])
+            (T [FAIL])]])]
+[PROG (X) [SET X [SUM (6 3 2 1) 5]]
+          [COND ([NEQ [LENGTH .X] 4] [FAIL])]
+          .X]
+"""
+        self.assertEqual(_eval_last(src), "(2 1 1 1)")
+
+    def test_sum_all_solutions(self):
+        """DO+PRINT+FAIL собирает все решения; каждое даёт сумму 5."""
+        src = """
+[DEFINE SUM (LAMBDA (L N)
+  [PROG (K (M ()) (S 0))
+    A [SET K  [AMONG .L]]
+      [SET M  (!.M .K)]
+      [SET S  [+ .S .K]]
+      [COND ([EQ .S .N] .M)
+            ([LT .S .N] [GO A])
+            (T [FAIL])]])]
+[DO [ALT () [EXIT T DO]]
+    [PRINT [SUM (6 3 2 1) 5]]
+    [FAIL]]
+"""
+        lines, values = _run_source(src)
+        solutions = [v for v in values if v.startswith("(")]
+        self.assertGreater(len(solutions), 1)
+        for sol in solutions:
+            nums = [int(x) for x in sol.strip("()").split()]
+            self.assertEqual(sum(nums), 5)
+
+
+# ===========================================================================
+# Ф8 — задача 8 ферзей (queens.plan)
+# ===========================================================================
+
+_QUEENS_DEF = """
+[DEFINE ДИАГ (LAMBDA (V LV)
+  [PROG (H (H1 0))
+    [SET H [+ [LENGTH .LV] 1]]
+    [LOOP V1 .LV [ADD1 H1]
+      [UNFALSE [NEQ [ABS [- .H  .H1]]
+                    [ABS [- .V  .V1]]]]]])]
+
+[DEFINE Ф8 (LAMBDA ()
+  [PROG (V FV (LV ()) B E)
+    [SET FV (1 2 3 4 5 6 7 8)]
+    [FOR H 8
+      [SET V  [AMONG .FV]]
+      [ДИАГ .V .LV]
+      [SET LV (!.LV .V)]
+      [IS (!*B .V !*E) .FV]
+      [SET FV (!.B !.E)]]
+    .LV])]
+"""
+
+
+class TestQueens(unittest.TestCase):
+
+    def test_queens_first_solution(self):
+        """Первое решение задачи 8 ферзей."""
+        result = _eval_last(_QUEENS_DEF + "[Ф8]")
+        self.assertEqual(result, "(1 5 8 6 3 7 2 4)")
+
+    def test_queens_solution_is_valid(self):
+        """Первое решение Ф8 — корректная расстановка (перестановка, без диагоналей)."""
+        result = _eval_last(_QUEENS_DEF + "[Ф8]")
+        cols = [int(x) for x in result.strip("()").split()]
+        self.assertEqual(len(cols), 8)
+        self.assertEqual(sorted(cols), list(range(1, 9)))
+        for i in range(8):
+            for j in range(i + 1, 8):
+                self.assertNotEqual(abs(cols[i] - cols[j]), j - i)
+
+    def test_queens_all_92(self):
+        """FIND ALL собирает ровно 92 решения задачи 8 ферзей."""
+        src = _QUEENS_DEF + "[FIND ALL (Q) .Q [SET Q [Ф8]]]"
+        result = _eval_last(src)
+        # результат — вложенный список решений: ((1 5 8 6 3 7 2 4) ...)
+        self.assertEqual(result.count("(") - 1, 92)
+
 
 if __name__ == "__main__":
     unittest.main()

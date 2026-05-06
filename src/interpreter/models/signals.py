@@ -1,4 +1,13 @@
+import enum
+
 from .values import Value
+
+
+class _ProgStepStatus(enum.Enum):
+    OK        = "ok"
+    GO        = "go"
+    RETURN    = "return"
+    EXHAUSTED = "exhausted"
 
 
 class _GoSignal(BaseException):

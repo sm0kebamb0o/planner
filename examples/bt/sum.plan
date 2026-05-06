@@ -1,0 +1,21 @@
+[DEFINE SUM (LAMBDA (L N)
+  [PROG (K (M ()) (S 0))
+    A [SET K  [AMONG .L]]
+      [SET M  (!.M .K)]
+      [SET S  [+ .S .K]]
+      [COND ([EQ .S .N] .M)
+            ([LT .S .N] [GO A])
+            (T [FAIL])]])]
+
+; First solution: [SUM (6 3 2 1) 5]  ->  (3 2)
+
+; Get the solution of length 4:
+[PROG (X) [SET X [SUM (6 3 2 1) 5]]
+          [COND ([NEQ [LENGTH .X] 4] [FAIL])]
+          .X]
+; ->  (2 1 1 1)
+
+; Print all solutions:
+[DO [ALT () [EXIT T DO]]
+    [PRINT [SUM (6 3 2 1) 5]]
+    [FAIL]]

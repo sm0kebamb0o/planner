@@ -3,11 +3,8 @@ from src.interpreter.models.signals import PlannerRuntimeError
 from src.parser.ast_nodes import IdentNode
 
 
-def do_(raw_args: list, interp) -> Value:
-    last: Value = NIL
-    for arg in raw_args:
-        last = interp.eval_form(arg)
-    return last
+def do_(raw_args: list, interp):
+    yield from interp._eval_prog_bt([], {}, {}, raw_args)
 
 
 def loop(raw_args: list, interp) -> Value:
@@ -35,7 +32,19 @@ def loop(raw_args: list, interp) -> Value:
         interp.env.pop_frame()
 
 
-def for_(raw_args: list, interp) -> Value:
+def _for_bt_chain(body_nodes, param_name, i, n, interp):
+    """BT-генератор: все итерации FOR связаны в единую цепочку отката."""
+    interp.env.set_local(param_name, i)
+    for body_val in interp._eval_body_bt(body_nodes):
+        if i == n:
+            yield body_val
+        else:
+            for rest_val in _for_bt_chain(body_nodes, param_name, i + 1, n, interp):
+                yield rest_val
+        interp.env.set_local(param_name, i)
+
+
+def for_(raw_args: list, interp):
     if len(raw_args) < 2:
         raise PlannerRuntimeError("FOR: нужны x, n и тело")
     param_node = raw_args[0]
@@ -48,15 +57,11 @@ def for_(raw_args: list, interp) -> Value:
         raise PlannerRuntimeError("FOR: второй аргумент должен быть числом")
     n = int(round(n_val))
     if n < 1:
-        return NIL
+        yield NIL
+        return
     interp.env.push_frame([param_name], {})
     try:
-        last_val: Value = NIL
-        for i in range(1, n + 1):
-            interp.env.set_local(param_name, i)
-            for body_expr in body_nodes:
-                last_val = interp.eval_form(body_expr)
-        return last_val
+        yield from _for_bt_chain(body_nodes, param_name, 1, n, interp)
     finally:
         interp.env.pop_frame()
 
@@ -86,8 +91,8 @@ def until(raw_args: list, interp) -> Value:
 
 
 def register(interp) -> None:
-    interp._fsubrs["DO"]    = lambda raw: do_(raw, interp)
+    interp._bt_fsubrs["DO"] = lambda raw: do_(raw, interp)
     interp._fsubrs["LOOP"]  = lambda raw: loop(raw, interp)
-    interp._fsubrs["FOR"]   = lambda raw: for_(raw, interp)
+    interp._bt_fsubrs["FOR"]   = lambda raw: for_(raw, interp)
     interp._fsubrs["WHILE"] = lambda raw: while_(raw, interp)
     interp._fsubrs["UNTIL"] = lambda raw: until(raw, interp)

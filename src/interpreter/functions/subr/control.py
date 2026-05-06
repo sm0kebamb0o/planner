@@ -1,4 +1,4 @@
-from src.interpreter.models.values import Value
+from src.interpreter.models.values import Value, NIL
 from src.interpreter.models.signals import PlannerRuntimeError, _GoSignal, _ReturnSignal
 
 
@@ -15,6 +15,12 @@ def return_(args: list, interp) -> Value:
     raise _ReturnSignal(args[0])
 
 
+def exit_(args: list, interp) -> Value:
+    val = args[0] if args else NIL
+    raise _ReturnSignal(val)
+
+
 def register(interp) -> None:
     interp._subrs["GO"]     = lambda args: go(args, interp)
     interp._subrs["RETURN"] = lambda args: return_(args, interp)
+    interp._subrs["EXIT"]   = lambda args: exit_(args, interp)
