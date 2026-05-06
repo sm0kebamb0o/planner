@@ -1,6 +1,9 @@
-from .interpreter import PlannerInterpreter, PlannerRuntimeError, BracketKind, PlannerList, ScaleValue
+from .interpreter import (
+    PlannerInterpreter, PlannerRuntimeError, PlannerFailure,
+    BracketKind, PlannerList, ScaleValue,
+)
 
 __all__ = [
-    "PlannerInterpreter", "PlannerRuntimeError",
+    "PlannerInterpreter", "PlannerRuntimeError", "PlannerFailure",
     "BracketKind", "PlannerList", "ScaleValue",
 ]
