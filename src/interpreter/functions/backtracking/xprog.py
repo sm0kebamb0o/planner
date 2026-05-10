@@ -1,6 +1,6 @@
 from src.interpreter.models.values import NIL, Value
 from src.interpreter.models.signals import PlannerRuntimeError, _GoSignal, _ReturnSignal
-from src.parser.ast_nodes import LListNode, IdentNode
+from src.parser.ast.nodes import LListNode, IdentNode
 from .utils import _close_forks_since
 from .perm_strg_temp import cleanup_perm, cleanup_strg, cleanup_temp
 

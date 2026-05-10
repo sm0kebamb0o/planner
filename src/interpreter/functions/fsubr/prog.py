@@ -1,5 +1,5 @@
 from src.interpreter.models.signals import PlannerRuntimeError
-from src.parser.ast_nodes import LListNode, IdentNode
+from src.parser.ast.nodes import LListNode, IdentNode
 
 
 def prog(raw_args: list, interp):

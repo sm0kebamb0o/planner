@@ -1,6 +1,6 @@
 from src.interpreter.models.values import NIL, _is_true, Value
 from src.interpreter.models.signals import PlannerRuntimeError
-from src.parser.ast_nodes import IdentNode
+from src.parser.ast.nodes import IdentNode
 
 
 def do_(raw_args: list, interp):

@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 
-from .auto_id import AutoIdMeta
+from .auto_id import AutoIdMeta, Id
 
 
 @dataclass
 class Neterminal(metaclass=AutoIdMeta):
     value : str
-    id    : str = field(init=False)
+    id    : Id = field(init=False)
 
     def __eq__(self, other: "Neterminal") -> bool:
         return self.value == other.value
@@ -21,7 +21,7 @@ class Neterminal(metaclass=AutoIdMeta):
 @dataclass
 class Terminal(metaclass=AutoIdMeta):
     value : str
-    id    : str = field(init=False)
+    id    : Id = field(init=False)
 
     def __eq__(self, other: "Terminal") -> bool:
         return self.value == other.value

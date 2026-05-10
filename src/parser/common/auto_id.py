@@ -1,6 +1,9 @@
 from uuid import uuid4
 
 
+Id = str
+
+
 class IdGenerator:
     _instance: "IdGenerator | None" = None
 
@@ -9,7 +12,7 @@ class IdGenerator:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def next_id(self, class_name: str) -> str:
+    def next_id(self, class_name: str) -> Id:
         return f"{class_name}_{uuid4()}"
 
 

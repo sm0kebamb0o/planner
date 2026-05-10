@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import operator as _op
 
-from src.parser.ast_nodes import (
+from src.parser.ast.nodes import (
     FormNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )

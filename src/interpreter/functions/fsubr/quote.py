@@ -1,6 +1,6 @@
 from src.interpreter.models.values import PlannerList, BracketKind, Value
 from src.interpreter.models.signals import PlannerRuntimeError
-from src.parser.ast_nodes import VarRefNode, VarMode, CallNode
+from src.parser.ast.nodes import VarRefNode, VarMode, CallNode
 
 
 def quote(raw_args: list, interp) -> Value:

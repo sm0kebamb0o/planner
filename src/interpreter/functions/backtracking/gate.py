@@ -1,6 +1,6 @@
 from src.interpreter.models.values import NIL, _is_true
 from src.interpreter.models.signals import PlannerFailure
-from src.parser.ast_nodes import LListNode
+from src.parser.ast.nodes import LListNode
 
 
 def gate_all(raw_args: list, interp):

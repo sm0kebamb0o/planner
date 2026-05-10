@@ -1,6 +1,6 @@
 from src.interpreter.models.values import NIL, Value
 from src.interpreter.models.signals import PlannerFailure, PlannerRuntimeError
-from src.parser.ast_nodes import LListNode
+from src.parser.ast.nodes import LListNode
 
 
 def if_(raw_args: list, interp) -> Value:

@@ -8,7 +8,7 @@ from google.protobuf import text_format
 from graphviz import Digraph
 
 from ..common.models import Terminal, Neterminal
-from ..common.auto_id import AutoIdMeta
+from ..common.auto_id import AutoIdMeta, Id
 from ..grammar import Grammar, EPSILON
 
 from .proto import graph_pb2
@@ -17,12 +17,12 @@ from .proto import graph_pb2
 @dataclass
 class Vertex(metaclass=AutoIdMeta):
     name : str
-    id   : str = field(init=False)
+    id   : Id = field(init=False)
 
 
 @dataclass
 class BracketsPair(metaclass=AutoIdMeta):
-    id : str = field(init=False)
+    id : Id = field(init=False)
 
 
 @dataclass
@@ -32,7 +32,7 @@ class Bracket:
         CLOSE = auto()
 
     type : Type
-    id   : str
+    id   : Id
 
     def __str__(self) -> str:
         return f"{'(' if self.type == self.Type.OPEN else ')'}_{self.id}"
@@ -43,7 +43,7 @@ class Edge(metaclass=AutoIdMeta):
     vertex1 : Vertex
     vertex2 : Vertex
     value   : Terminal | Bracket
-    id      : str = field(init=False)
+    id      : Id = field(init=False)
 
 
 @dataclass
@@ -75,29 +75,29 @@ class Graph:
         self._edges[edge.id] = edge
         return self
 
-    def adjacency_by_name(self) -> dict[str, list["Edge"]]:
-        result: dict[str, list[Edge]] = defaultdict(list)
-        for edge in self.edges:
-            result[edge.vertex1.name].append(edge)
-        return dict(result)
+    # def adjacency_by_name(self) -> dict[Id, list["Edge"]]:
+    #     result: dict[Id, list[Edge]] = defaultdict(list)
+    #     for edge in self.edges:
+    #         result[edge.vertex1.name].append(edge)
+    #     return dict(result)
 
     @property
-    def start_name(self) -> str:
-        return self.initial.name
+    def start_vertex(self) -> Vertex:
+        return self.initial
 
     @property
-    def final_names(self) -> frozenset[str]:
-        return frozenset(v.name for v in self.final)
+    def final_vertices(self) -> frozenset[Vertex]:
+        return frozenset(v for v in self.final)
 
     @property
-    def start_id(self) -> str:
+    def start_id(self) -> Id:
         return self.initial.id
 
     @property
-    def final_ids(self) -> frozenset[str]:
+    def final_ids(self) -> frozenset[Id]:
         return frozenset(v.id for v in self.final)
 
-    def vertex_by_id(self, vertex_id: str) -> "Vertex":
+    def vertex_by_id(self, vertex_id: Id) -> "Vertex":
         return self._vertices[vertex_id]
     
     def vertex_by_name(self, vertex_name: str) -> "Vertex":
@@ -106,24 +106,24 @@ class Graph:
                 return v
         raise KeyError(f"Нет вершины {vertex_name!r} в графе")
 
-    def is_final(self, vertex_id: str) -> bool:
+    def is_final(self, vertex_id: Id) -> bool:
         return vertex_id in self.final_ids
 
-    def nt_start_id(self, nt_name: str) -> str:
+    def nt_start_id(self, nt_name: str) -> Id:
         target = f"{nt_name}_beg"
         for v in self._vertices.values():
             if v.name == target:
                 return v.id
         raise KeyError(f"Нет вершины {target!r} в графе")
 
-    def nt_end_id(self, nt_name: str) -> str:
+    def nt_end_id(self, nt_name: str) -> Id:
         target = f"{nt_name}_end"
         for v in self._vertices.values():
             if v.name == target:
                 return v.id
         raise KeyError(f"Нет вершины {target!r} в графе")
 
-    def adjacency_by_id(self) -> dict[str, list["Edge"]]:
+    def adjacency_by_id(self) -> dict[Id, list["Edge"]]:
         result: dict[str, list[Edge]] = defaultdict(list)
         for edge in self.edges:
             result[edge.vertex1.id].append(edge)

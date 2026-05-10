@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from typing import Callable, Generator, Iterator
 
-from src.parser.ast_nodes import (
+from src.parser.ast.nodes import (
     FormNode, ProgramNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )

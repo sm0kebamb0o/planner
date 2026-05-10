@@ -1,6 +1,6 @@
 from src.interpreter.models.values import NIL, _is_true, Value
 from src.interpreter.models.signals import PlannerRuntimeError
-from src.parser.ast_nodes import LListNode
+from src.parser.ast.nodes import LListNode
 
 
 def cond(raw_args: list, interp) -> Value:

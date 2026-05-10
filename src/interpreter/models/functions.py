@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Union
 
-from src.parser.ast_nodes import FormNode
+from src.parser.ast.nodes import FormNode
 
 
 @dataclass
