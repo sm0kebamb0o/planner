@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
+from pathlib import Path
+
+from google.protobuf import text_format
 
 from ..common import Neterminal, Terminal
+from .proto import grammar_pb2
 
 
 EPSILON = Terminal("eps", id="Terminal_eps")
@@ -102,4 +108,76 @@ class Grammar:
             non_terminals=non_terminals,
             rules=rules_order,
             start=start,
+        )
+
+    # ------------------------------------------------------------------
+    # Serialization
+    # ------------------------------------------------------------------
+
+    def dump(self, file_path: str | Path) -> None:
+        proto = grammar_pb2.Grammar()
+        proto.start_id = self.start.id
+
+        for t in self.terminals:
+            pt = proto.terminals.add()
+            pt.id = t.id
+            pt.value = t.value
+
+        for nt in self.non_terminals:
+            pnt = proto.neterminals.add()
+            pnt.id = nt.id
+            pnt.value = nt.value
+
+        for rule in self.rules:
+            pr = proto.rules.add()
+            pr.lhs_id = rule.lhs.id
+            for alt in rule.rhs:
+                pa = pr.rhs.add()
+                for sym in alt:
+                    ps = pa.symbols.add()
+                    if isinstance(sym, Terminal):
+                        ps.terminal_id = sym.id
+                    else:
+                        ps.neterminal_id = sym.id
+
+        Path(file_path).write_text(text_format.MessageToString(proto))
+
+    @classmethod
+    def load(cls, file_path: str | Path) -> "Grammar":
+        proto = grammar_pb2.Grammar()
+        text_format.Parse(Path(file_path).read_text(), proto)
+
+        id_to_terminal:   dict[str, Terminal]   = {}
+        id_to_neterminal: dict[str, Neterminal] = {}
+
+        for pt in proto.terminals:
+            t = Terminal(pt.value, id=pt.id)
+            id_to_terminal[t.id] = t
+
+        id_to_terminal[EPSILON.id] = EPSILON
+
+        for pnt in proto.neterminals:
+            nt = Neterminal(pnt.value, id=pnt.id)
+            id_to_neterminal[nt.id] = nt
+
+        rules: list[Rule] = []
+        for pr in proto.rules:
+            lhs = id_to_neterminal[pr.lhs_id]
+            rhs: list[list[Terminal | Neterminal]] = []
+            for pa in pr.rhs:
+                alt: list[Terminal | Neterminal] = []
+                for ps in pa.symbols:
+                    which = ps.WhichOneof("kind")
+                    if which == "terminal_id":
+                        alt.append(id_to_terminal[ps.terminal_id])
+                    else:
+                        alt.append(id_to_neterminal[ps.neterminal_id])
+                rhs.append(alt)
+            rules.append(Rule(lhs=lhs, rhs=rhs))
+
+        return cls(
+            terminals=[t for t in id_to_terminal.values() if t != EPSILON],
+            non_terminals=list(id_to_neterminal.values()),
+            rules=rules,
+            start=id_to_neterminal[proto.start_id],
         )

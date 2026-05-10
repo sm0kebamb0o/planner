@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from src.parser.grammar import EPSILON, NeterminalName
+
 from .ast import FormNode, ProgramNode
 from .ast.assembler import TokItem, ASTItem, assemble_node
 from .errors import ParseError
@@ -19,12 +21,6 @@ class PlannerReader:
         self._adj: dict[Id, list[Edge]] = self.graph.adjacency_by_id()
         self._first: dict[str, frozenset[str]] = self._build_first_sets()
         self._nullable: frozenset[str] = self._build_nullable()
-
-        self._form_start_id: Id = self.graph.vertex_by_name("Form_beg").id
-        self._form_end_id: Id = self.graph.vertex_by_name("Form_end").id
-
-        self._tokens:  list[Token] = []
-        self._tok_pos: int = 0
 
     def _build_nullable(self) -> frozenset[str]:
         nullable: set[str] = set()
@@ -88,19 +84,20 @@ class PlannerReader:
     # ------------------------------------------------------------------
 
     def _parse_form(self, group: list[Token]) -> FormNode:
-        self._tokens  = group
-        self._tok_pos = 0
+        tokens = group
+        tok_pos = 0
 
-        current: str = self._form_start_id
+        current: Id = self.graph.start_id
         b_stack: list[tuple[str, str]] = []
         ast_stack: list[list[ASTItem]] = [[]]
 
         while True:
-            if current == self._form_end_id and not b_stack:
+            if self.graph.is_final(current) and not b_stack:
+                # Разобрали форму полностью
                 break
 
-            if self._tok_pos < len(self._tokens):
-                tt: str = self._tokens[self._tok_pos].type.name
+            if tok_pos < len(tokens):
+                tt: str = tokens[tok_pos].type.name
             else:
                 tt = "EOF"
 
@@ -108,8 +105,8 @@ class PlannerReader:
 
             if edge is None:
                 vname = self._vertex_name.get(current, current)
-                if self._tok_pos < len(self._tokens):
-                    tok = self._tokens[self._tok_pos]
+                if tok_pos < len(tokens):
+                    tok = tokens[tok_pos]
                     raise ParseError(
                         f"Нет подходящего перехода из вершины {vname!r} "
                         f"при токене {tt!r} ({tok.line}:{tok.col})"
@@ -125,7 +122,8 @@ class PlannerReader:
                 if ev.value == "eps":
                     current = edge.vertex2.id
                 else:
-                    tok = self._advance_tok()
+                    tok = tokens[tok_pos]
+                    tok_pos += 1
                     ast_stack[-1].append(TokItem(tok.type, tok.value))
                     current = edge.vertex2.id
 
@@ -166,31 +164,31 @@ class PlannerReader:
 
     def _find_edge(
         self,
-        vertex_id: str,
+        vertex_id: Id,
         token_type: str,
         b_stack: list[tuple[str, str]],
     ) -> Edge | None:
         """Из всех рёбер текущей вершины выбирается первое подходящее:
-        1. Терминальное ребро с пометкой == tt
-        2. Открывающая скобка к NT_beg, если tt \in FIRST(NT)
+        1. Терминальное ребро с пометкой == token_type
+        2. Открывающая скобка к NT_beg, если token_type \in FIRST(NT)
         3. Закрывающая скобка, если b_stack[-1][0] == edge.value.id
         4. eps-ребро (запасной вариант; покрывает пустой FormList)
         """
-        edges = self._adj.get(vertex_id, [])
+        edges = self.graph.get_adjacent_edges(vertex_id)
         eps_edge:      Edge | None = None
         nullable_edge: Edge | None = None
 
         for edge in edges:
-            ev = edge.value
+            edge_value = edge.value
 
-            if isinstance(ev, Terminal):
-                if ev.value == "eps":
+            if isinstance(edge_value, Terminal):
+                if edge_value == EPSILON:
                     eps_edge = edge
-                elif ev.value == token_type:
+                elif edge_value.value == token_type:
                     return edge
 
-            elif isinstance(ev, Bracket):
-                if ev.type == Bracket.Type.OPEN:
+            elif isinstance(edge_value, Bracket):
+                if edge_value.type == Bracket.Type.OPEN:
                     nt_beg_name = self._vertex_name.get(edge.vertex2.id, "")
                     nt_name = (
                         nt_beg_name[: -len("_beg")]
@@ -204,19 +202,11 @@ class PlannerReader:
                     if nt_name in self._nullable:
                         nullable_edge = edge
 
-                elif ev.type == Bracket.Type.CLOSE:
-                    if b_stack and b_stack[-1][0] == ev.id:
+                elif edge_value.type == Bracket.Type.CLOSE:
+                    if b_stack and b_stack[-1][0] == edge_value.id:
                         return edge
 
                 else:
-                    raise ValueError(f"Неизвестный тип скобки: {ev.type!r}")
+                    raise ParseError(f"Неизвестный тип скобки: {edge_value.type!r}")
 
-        return nullable_edge if nullable_edge is not None else eps_edge
-
-    def _peek_tok(self) -> Token:
-        return self._tokens[self._tok_pos]
-
-    def _advance_tok(self) -> Token:
-        tok = self._tokens[self._tok_pos]
-        self._tok_pos += 1
-        return tok
+        return nullable_edge if nullable_edge else eps_edge

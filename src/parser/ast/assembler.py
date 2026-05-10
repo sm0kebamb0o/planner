@@ -96,7 +96,4 @@ def assemble_node(nt_name: str, items: list[ASTItem]) -> ASTItem | None:
             raise ParseError(f"SList: недопустимая голова {head_node!r}")
         return CallNode(head=head_node, args=list(sb[1:]), segmented=True)
 
-    if nt_name == NeterminalName.PROGRAM:
-        return None
-
     raise ParseError(f"assemble_node: неизвестный нетерминал {nt_name!r}")

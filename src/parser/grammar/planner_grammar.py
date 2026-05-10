@@ -1,4 +1,5 @@
 from enum import StrEnum
+from pathlib import Path
 
 from src.lexer import TT
 from ..common.models import Terminal, Neterminal
@@ -10,7 +11,6 @@ TerminalName = TT
 
 
 class NeterminalName(StrEnum):
-    PROGRAM   = "Program"
     FORM_LIST = "FormList"
     FORM      = "Form"
     ATOM      = "Atom"
@@ -20,108 +20,116 @@ class NeterminalName(StrEnum):
     S_LIST    = "SList"
 
 
-TERMINALS: dict[TerminalName, Terminal] = {
-    t: Terminal(t.name)
-    for t in TerminalName
-    if t != TerminalName.EOF
-}
+def _build_grammar() -> Grammar:
+    terminals: dict[TerminalName, Terminal] = {
+        t: Terminal(t.name)
+        for t in TerminalName
+        if t != TerminalName.EOF
+    }
+    neterminals: dict[NeterminalName, Neterminal] = {
+        nt: Neterminal(nt) for nt in NeterminalName
+    }
+
+    rules: list[Rule] = [
+        Rule(
+            lhs=neterminals[NeterminalName.FORM_LIST],
+            rhs=[
+                [
+                    neterminals[NeterminalName.FORM],
+                    neterminals[NeterminalName.FORM_LIST],
+                ],
+                [EPSILON],
+            ]
+        ),
+
+        Rule(
+            lhs=neterminals[NeterminalName.FORM],
+            rhs=[
+                [neterminals[NeterminalName.ATOM]],
+                [neterminals[NeterminalName.VAR_REF]],
+                [neterminals[NeterminalName.L_LIST]],
+                [neterminals[NeterminalName.P_LIST]],
+                [neterminals[NeterminalName.S_LIST]],
+            ]
+        ),
+
+        Rule(
+            lhs=neterminals[NeterminalName.ATOM],
+            rhs=[
+                [terminals[TerminalName.IDENT]],
+                [terminals[TerminalName.INT]],
+                [terminals[TerminalName.FLOAT]],
+                [terminals[TerminalName.SCALE]],
+            ]
+        ),
+
+        Rule(
+            lhs=neterminals[NeterminalName.VAR_REF],
+            rhs=[
+                [terminals[TerminalName.DOT], terminals[TerminalName.IDENT]],
+                [terminals[TerminalName.STAR], terminals[TerminalName.IDENT]],
+                [terminals[TerminalName.COLON], terminals[TerminalName.IDENT]],
+                [terminals[TerminalName.BANG_DOT], terminals[TerminalName.IDENT]],
+                [terminals[TerminalName.BANG_STAR], terminals[TerminalName.IDENT]],
+                [terminals[TerminalName.BANG_COLON], terminals[TerminalName.IDENT]],
+            ]
+        ),
+
+        Rule(
+            lhs=neterminals[NeterminalName.L_LIST],
+            rhs=[
+                [
+                    terminals[TerminalName.LPAREN],
+                    neterminals[NeterminalName.FORM_LIST],
+                    terminals[TerminalName.RPAREN],
+                ],
+            ]
+        ),
+
+        Rule(
+            lhs=neterminals[NeterminalName.P_LIST],
+            rhs=[
+                [
+                    terminals[TerminalName.LBRACKET],
+                    neterminals[NeterminalName.FORM_LIST],
+                    terminals[TerminalName.RBRACKET],
+                ],
+            ]
+        ),
+
+        Rule(
+            lhs=neterminals[NeterminalName.S_LIST],
+            rhs=[
+                [
+                    terminals[TerminalName.LANGLE],
+                    neterminals[NeterminalName.FORM_LIST],
+                    terminals[TerminalName.RANGLE],
+                ],
+            ]
+        ),
+    ]
+
+    return Grammar(
+        terminals=list(terminals.values()),
+        non_terminals=list(neterminals.values()),
+        rules=rules,
+        start=neterminals[NeterminalName.FORM],
+    )
 
 
-NETERMINALS: dict[NeterminalName, Neterminal] = {
-    nt: Neterminal(nt) for nt in NeterminalName
-}
+class PlannerGrammarLoader:
+    GRAMMAR_DIR = Path(__file__).parent
+    GRAMMAR_PROTO = GRAMMAR_DIR / "planner_grammar.pb.txt"
+
+    def save():
+        grammar = _build_grammar()
+        grammar.dump(PlannerGrammarLoader.GRAMMAR_PROTO)
+
+    @staticmethod
+    def load() -> Grammar:
+        if not PlannerGrammarLoader.GRAMMAR_PROTO.exists():
+            PlannerGrammarLoader.save()
+        return Grammar.load(PlannerGrammarLoader.GRAMMAR_PROTO)
 
 
-RULES: list[Rule] = [
-    Rule(
-        lhs=NETERMINALS[NeterminalName.PROGRAM],
-        rhs=[
-            [NETERMINALS[NeterminalName.FORM_LIST]],
-        ]
-    ),
-
-    Rule(
-        lhs=NETERMINALS[NeterminalName.FORM_LIST],
-        rhs=[
-            [
-                NETERMINALS[NeterminalName.FORM],
-                NETERMINALS[NeterminalName.FORM_LIST],
-            ],
-            [EPSILON],
-        ]
-    ),
-
-    Rule(
-        lhs=NETERMINALS[NeterminalName.FORM],
-        rhs=[
-            [NETERMINALS[NeterminalName.ATOM]],
-            [NETERMINALS[NeterminalName.VAR_REF]],
-            [NETERMINALS[NeterminalName.L_LIST]],
-            [NETERMINALS[NeterminalName.P_LIST]],
-            [NETERMINALS[NeterminalName.S_LIST]],
-        ]
-    ),
-
-    Rule(
-        lhs=NETERMINALS[NeterminalName.ATOM],
-        rhs=[
-            [TERMINALS[TerminalName.IDENT]],
-            [TERMINALS[TerminalName.INT]],
-            [TERMINALS[TerminalName.FLOAT]],
-            [TERMINALS[TerminalName.SCALE]],
-        ]
-    ),
-
-    Rule(
-        lhs=NETERMINALS[NeterminalName.VAR_REF],
-        rhs=[
-            [TERMINALS[TerminalName.DOT], TERMINALS[TerminalName.IDENT]],
-            [TERMINALS[TerminalName.STAR], TERMINALS[TerminalName.IDENT]],
-            [TERMINALS[TerminalName.COLON], TERMINALS[TerminalName.IDENT]],
-            [TERMINALS[TerminalName.BANG_DOT], TERMINALS[TerminalName.IDENT]],
-            [TERMINALS[TerminalName.BANG_STAR], TERMINALS[TerminalName.IDENT]],
-            [TERMINALS[TerminalName.BANG_COLON], TERMINALS[TerminalName.IDENT]],
-        ]
-    ),
-
-    Rule(
-        lhs=NETERMINALS[NeterminalName.L_LIST],
-        rhs=[
-            [
-                TERMINALS[TerminalName.LPAREN],
-                NETERMINALS[NeterminalName.FORM_LIST],
-                TERMINALS[TerminalName.RPAREN],
-            ],
-        ]
-    ),
-
-    Rule(
-        lhs=NETERMINALS[NeterminalName.P_LIST],
-        rhs=[
-            [
-                TERMINALS[TerminalName.LBRACKET],
-                NETERMINALS[NeterminalName.FORM_LIST],
-                TERMINALS[TerminalName.RBRACKET],
-            ],
-        ]
-    ),
-
-    Rule(
-        lhs=NETERMINALS[NeterminalName.S_LIST],
-        rhs=[
-            [
-                TERMINALS[TerminalName.LANGLE],
-                NETERMINALS[NeterminalName.FORM_LIST],
-                TERMINALS[TerminalName.RANGLE],
-            ],
-        ]
-    ),
-]
-
-
-PLANNER_GRAMMAR = Grammar(
-    terminals=list(TERMINALS.values()),
-    non_terminals=list(NETERMINALS.values()),
-    rules=RULES,
-    start=NETERMINALS[NeterminalName.PROGRAM],
-)
+PLANNER_GRAMMAR = PlannerGrammarLoader.load()

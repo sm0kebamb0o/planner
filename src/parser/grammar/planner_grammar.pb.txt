@@ -1,0 +1,253 @@
+terminals {
+  id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
+  value: "IDENT"
+}
+terminals {
+  id: "Terminal_dc415887-0e5d-4341-86fe-fb6c2a9772ec"
+  value: "INT"
+}
+terminals {
+  id: "Terminal_ceeebfb8-86e8-49e4-80a8-4bbe2d1b5971"
+  value: "FLOAT"
+}
+terminals {
+  id: "Terminal_a4ad5875-481d-4175-a796-0f24b6bae605"
+  value: "SCALE"
+}
+terminals {
+  id: "Terminal_fe15ce0f-7ffa-472a-a1f7-a96b825ea8b1"
+  value: "LPAREN"
+}
+terminals {
+  id: "Terminal_0288b0c0-89ea-4892-a488-b41764720f10"
+  value: "RPAREN"
+}
+terminals {
+  id: "Terminal_0e06bb0a-4a45-41d1-8c92-7786535dd1e3"
+  value: "LBRACKET"
+}
+terminals {
+  id: "Terminal_db65c886-27ee-412f-b618-3890599f0d0a"
+  value: "RBRACKET"
+}
+terminals {
+  id: "Terminal_97a5ca34-6e06-4909-88ad-8098dc6d76c3"
+  value: "LANGLE"
+}
+terminals {
+  id: "Terminal_4e7dbbcd-9bfe-45dc-a211-f69c4f137586"
+  value: "RANGLE"
+}
+terminals {
+  id: "Terminal_6b85f3d5-a9eb-45b7-9e0c-eeaf7f889728"
+  value: "DOT"
+}
+terminals {
+  id: "Terminal_4e467477-c6f3-4f4c-bf6e-d83fbd6aa0ae"
+  value: "STAR"
+}
+terminals {
+  id: "Terminal_4be865ed-bdf9-4aff-a776-706620870e53"
+  value: "COLON"
+}
+terminals {
+  id: "Terminal_6ebf7b8e-c6ae-460d-931a-04005912e1fc"
+  value: "BANG_DOT"
+}
+terminals {
+  id: "Terminal_c9e10a7c-6d25-424b-b3dd-7e5d9b4c7ee3"
+  value: "BANG_STAR"
+}
+terminals {
+  id: "Terminal_e9e5bfdd-ae12-491f-a2ad-8cc2f3be45fa"
+  value: "BANG_COLON"
+}
+neterminals {
+  id: "Neterminal_42af7233-ecf1-4d2d-9a81-4b1e838d2757"
+  value: "FormList"
+}
+neterminals {
+  id: "Neterminal_56215b10-271e-48ac-b8a1-fc3083fe94e1"
+  value: "Form"
+}
+neterminals {
+  id: "Neterminal_38d2ce6b-a4be-4321-a487-861b29654184"
+  value: "Atom"
+}
+neterminals {
+  id: "Neterminal_48c3371a-223d-4291-842e-be2e810461c7"
+  value: "VarRef"
+}
+neterminals {
+  id: "Neterminal_595e4fe9-9f87-4f6a-acac-aa8914f22012"
+  value: "LList"
+}
+neterminals {
+  id: "Neterminal_a18ed28e-26a1-44c5-ad2f-30d992c368c5"
+  value: "PList"
+}
+neterminals {
+  id: "Neterminal_74cdcd44-dda4-4614-b28e-f0ef7f7c9ded"
+  value: "SList"
+}
+rules {
+  lhs_id: "Neterminal_42af7233-ecf1-4d2d-9a81-4b1e838d2757"
+  rhs {
+    symbols {
+      neterminal_id: "Neterminal_56215b10-271e-48ac-b8a1-fc3083fe94e1"
+    }
+    symbols {
+      neterminal_id: "Neterminal_42af7233-ecf1-4d2d-9a81-4b1e838d2757"
+    }
+  }
+  rhs {
+    symbols {
+      terminal_id: "Terminal_eps"
+    }
+  }
+}
+rules {
+  lhs_id: "Neterminal_56215b10-271e-48ac-b8a1-fc3083fe94e1"
+  rhs {
+    symbols {
+      neterminal_id: "Neterminal_38d2ce6b-a4be-4321-a487-861b29654184"
+    }
+  }
+  rhs {
+    symbols {
+      neterminal_id: "Neterminal_48c3371a-223d-4291-842e-be2e810461c7"
+    }
+  }
+  rhs {
+    symbols {
+      neterminal_id: "Neterminal_595e4fe9-9f87-4f6a-acac-aa8914f22012"
+    }
+  }
+  rhs {
+    symbols {
+      neterminal_id: "Neterminal_a18ed28e-26a1-44c5-ad2f-30d992c368c5"
+    }
+  }
+  rhs {
+    symbols {
+      neterminal_id: "Neterminal_74cdcd44-dda4-4614-b28e-f0ef7f7c9ded"
+    }
+  }
+}
+rules {
+  lhs_id: "Neterminal_38d2ce6b-a4be-4321-a487-861b29654184"
+  rhs {
+    symbols {
+      terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
+    }
+  }
+  rhs {
+    symbols {
+      terminal_id: "Terminal_dc415887-0e5d-4341-86fe-fb6c2a9772ec"
+    }
+  }
+  rhs {
+    symbols {
+      terminal_id: "Terminal_ceeebfb8-86e8-49e4-80a8-4bbe2d1b5971"
+    }
+  }
+  rhs {
+    symbols {
+      terminal_id: "Terminal_a4ad5875-481d-4175-a796-0f24b6bae605"
+    }
+  }
+}
+rules {
+  lhs_id: "Neterminal_48c3371a-223d-4291-842e-be2e810461c7"
+  rhs {
+    symbols {
+      terminal_id: "Terminal_6b85f3d5-a9eb-45b7-9e0c-eeaf7f889728"
+    }
+    symbols {
+      terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
+    }
+  }
+  rhs {
+    symbols {
+      terminal_id: "Terminal_4e467477-c6f3-4f4c-bf6e-d83fbd6aa0ae"
+    }
+    symbols {
+      terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
+    }
+  }
+  rhs {
+    symbols {
+      terminal_id: "Terminal_4be865ed-bdf9-4aff-a776-706620870e53"
+    }
+    symbols {
+      terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
+    }
+  }
+  rhs {
+    symbols {
+      terminal_id: "Terminal_6ebf7b8e-c6ae-460d-931a-04005912e1fc"
+    }
+    symbols {
+      terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
+    }
+  }
+  rhs {
+    symbols {
+      terminal_id: "Terminal_c9e10a7c-6d25-424b-b3dd-7e5d9b4c7ee3"
+    }
+    symbols {
+      terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
+    }
+  }
+  rhs {
+    symbols {
+      terminal_id: "Terminal_e9e5bfdd-ae12-491f-a2ad-8cc2f3be45fa"
+    }
+    symbols {
+      terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
+    }
+  }
+}
+rules {
+  lhs_id: "Neterminal_595e4fe9-9f87-4f6a-acac-aa8914f22012"
+  rhs {
+    symbols {
+      terminal_id: "Terminal_fe15ce0f-7ffa-472a-a1f7-a96b825ea8b1"
+    }
+    symbols {
+      neterminal_id: "Neterminal_42af7233-ecf1-4d2d-9a81-4b1e838d2757"
+    }
+    symbols {
+      terminal_id: "Terminal_0288b0c0-89ea-4892-a488-b41764720f10"
+    }
+  }
+}
+rules {
+  lhs_id: "Neterminal_a18ed28e-26a1-44c5-ad2f-30d992c368c5"
+  rhs {
+    symbols {
+      terminal_id: "Terminal_0e06bb0a-4a45-41d1-8c92-7786535dd1e3"
+    }
+    symbols {
+      neterminal_id: "Neterminal_42af7233-ecf1-4d2d-9a81-4b1e838d2757"
+    }
+    symbols {
+      terminal_id: "Terminal_db65c886-27ee-412f-b618-3890599f0d0a"
+    }
+  }
+}
+rules {
+  lhs_id: "Neterminal_74cdcd44-dda4-4614-b28e-f0ef7f7c9ded"
+  rhs {
+    symbols {
+      terminal_id: "Terminal_97a5ca34-6e06-4909-88ad-8098dc6d76c3"
+    }
+    symbols {
+      neterminal_id: "Neterminal_42af7233-ecf1-4d2d-9a81-4b1e838d2757"
+    }
+    symbols {
+      terminal_id: "Terminal_4e7dbbcd-9bfe-45dc-a211-f69c4f137586"
+    }
+  }
+}
+start_id: "Neterminal_56215b10-271e-48ac-b8a1-fc3083fe94e1"

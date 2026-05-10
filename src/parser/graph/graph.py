@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from pathlib import Path
 
 from google.protobuf import text_format
 from graphviz import Digraph
@@ -48,12 +49,13 @@ class Edge(metaclass=AutoIdMeta):
 
 @dataclass
 class Graph:
-    initial   : Vertex
-    _vertices : dict[str, Vertex] = field(default_factory=dict)
-    _edges    : dict[str, Edge]   = field(default_factory=dict)
-    final     : list[Vertex]      = field(default_factory=list)
-    terminals : list[Terminal]    = field(default_factory=list)
-    brackets  : list[Bracket]     = field(default_factory=list)
+    initial          : Vertex
+    _vertices        : dict[Id, Vertex] = field(default_factory=dict)
+    _edges           : dict[Id, Edge]   = field(default_factory=dict)
+    _vertex_to_edges : dict[Id, list[Edge]] = field(default_factory=dict)
+    final            : list[Vertex]      = field(default_factory=list)
+    terminals        : list[Terminal]    = field(default_factory=list)
+    brackets         : list[Bracket]     = field(default_factory=list)
 
     # ------------------------------------------------------------------
     # Public methods
@@ -73,6 +75,11 @@ class Graph:
 
     def add_edge(self, edge: Edge) -> "Graph":
         self._edges[edge.id] = edge
+        if edge.vertex1.id not in self._vertices:
+            self.add_vertex(edge.vertex1)
+        if edge.vertex2.id not in self._vertices:
+            self.add_vertex(edge.vertex2)
+        self._vertex_to_edges.setdefault(edge.vertex1.id, []).append(edge)
         return self
 
     # def adjacency_by_name(self) -> dict[Id, list["Edge"]]:
@@ -100,14 +107,17 @@ class Graph:
     def vertex_by_id(self, vertex_id: Id) -> "Vertex":
         return self._vertices[vertex_id]
     
-    def vertex_by_name(self, vertex_name: str) -> "Vertex":
-        for v in self._vertices.values():
-            if v.name == vertex_name:
-                return v
-        raise KeyError(f"Нет вершины {vertex_name!r} в графе")
+    # def vertex_by_name(self, vertex_name: str) -> "Vertex":
+    #     for v in self._vertices.values():
+    #         if v.name == vertex_name:
+    #             return v
+    #     raise KeyError(f"Нет вершины {vertex_name!r} в графе")
 
     def is_final(self, vertex_id: Id) -> bool:
         return vertex_id in self.final_ids
+    
+    def get_adjacent_edges(self, vertex_id: Id) -> list[Edge]:
+        return self._vertex_to_edges.get(vertex_id, [])
 
     def nt_start_id(self, nt_name: str) -> Id:
         target = f"{nt_name}_beg"
@@ -123,8 +133,8 @@ class Graph:
                 return v.id
         raise KeyError(f"Нет вершины {target!r} в графе")
 
-    def adjacency_by_id(self) -> dict[Id, list["Edge"]]:
-        result: dict[str, list[Edge]] = defaultdict(list)
+    def adjacency_by_id(self) -> dict[Id, list[Edge]]:
+        result: dict[Id, list[Edge]] = defaultdict(list)
         for edge in self.edges:
             result[edge.vertex1.id].append(edge)
         return dict(result)
@@ -141,17 +151,20 @@ class Graph:
             else:
                 key = "open" if edge.value.type == Bracket.Type.OPEN else "close"
             groups.setdefault(key, []).append(edge)
+
         return groups
+
+    @classmethod
+    def vertex_name_beg(self, nt: str) -> str:
+        return f"{nt}_beg"
+
+    @classmethod
+    def vertex_name_end(self, nt: str) -> str:
+        return f"{nt}_end"
 
     @staticmethod
     def from_grammar(grammar: Grammar) -> "Graph":
         """Build a context-free L-graph from a CFG"""
-
-        def vertex_name_beg(nt: str) -> str:
-            return f"{nt}_beg"
-
-        def vertex_name_end(nt: str) -> str:
-            return f"{nt}_end"
 
         def vertex_name_mid(nt: str, rule_idx: int, pos: int) -> str:
             return f"{nt}_{rule_idx}_{pos}"
@@ -159,8 +172,8 @@ class Graph:
         used_vertices: dict[str, tuple[Vertex, Vertex]] = {}
         def get_beg_end_vertices(nonterminal: Neterminal) -> tuple[Vertex, Vertex]:
             if nonterminal.id not in used_vertices:
-                beg_vertex = Vertex(vertex_name_beg(nonterminal.value))
-                end_vertex = Vertex(vertex_name_end(nonterminal.value))
+                beg_vertex = Vertex(Graph.vertex_name_beg(nonterminal.value))
+                end_vertex = Vertex(Graph.vertex_name_end(nonterminal.value))
                 used_vertices[nonterminal.id] = (beg_vertex, end_vertex)
             return used_vertices[nonterminal.id]
 
@@ -244,8 +257,7 @@ class Graph:
             elif isinstance(e.value, Bracket):
                 pe.bracket_id = e.value.id
 
-        with open(file_path, "w") as f:
-            f.write(text_format.MessageToString(proto))
+        Path(file_path).write_text(text_format.MessageToString(proto))
 
     @classmethod
     def load(cls, file_path: str) -> "Graph":
@@ -298,7 +310,7 @@ class Graph:
                 value=value,
                 id=pe.id,
             )
-            g._edges[e.id] = e
+            g.add_edge(e)
 
         return g
 
