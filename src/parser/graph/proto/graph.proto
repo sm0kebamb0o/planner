@@ -26,6 +26,10 @@ message Edge {
   }
 }
 
+message FirstSet {
+  repeated string terminals = 1;
+}
+
 message Graph {
   repeated Vertex vertices = 1;
   repeated Edge edges = 2;
@@ -33,4 +37,6 @@ message Graph {
   repeated string final = 4;
   repeated Terminal terminals = 5;
   repeated Bracket brackets = 6;
+  repeated string nullable = 7;
+  map<string, FirstSet> first = 8;
 }

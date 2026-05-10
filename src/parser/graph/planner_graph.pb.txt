@@ -1,433 +1,433 @@
 vertices {
-  id: "Vertex_69197e5a-98e2-446c-8fef-acf68cb9fa09"
+  id: "Vertex_19ee3dfb-431d-48ce-86f4-b9a08f231a16"
   name: "FormList_beg"
 }
 vertices {
-  id: "Vertex_9165200e-5ed5-4d21-9ab3-7629028e1115"
+  id: "Vertex_9c85339d-26ff-4b4d-a532-e1870302e56d"
   name: "FormList_0_1"
 }
 vertices {
-  id: "Vertex_37ad90c5-144d-430d-90b7-e54c982c4ac4"
-  name: "FormList_end"
-}
-vertices {
-  id: "Vertex_dea3ce71-31a7-4704-860c-5203d7fac278"
+  id: "Vertex_4e014a21-08a1-4ee0-8ae8-70ddc56d4415"
   name: "Form_beg"
 }
 vertices {
-  id: "Vertex_2284a2ee-b023-4edc-869d-bf889a46b325"
+  id: "Vertex_15ded183-af33-4c1e-9cb4-3b11c6c8f0d0"
   name: "Form_end"
 }
 vertices {
-  id: "Vertex_ce5333aa-7a8e-402e-a43b-e7e8108c8a09"
+  id: "Vertex_00541bf6-c3f3-44e7-af71-53009f640f86"
+  name: "FormList_end"
+}
+vertices {
+  id: "Vertex_6dbc6a25-0572-4e4f-824e-3e2b9ac4f5c1"
   name: "Atom_beg"
 }
 vertices {
-  id: "Vertex_1750bec8-5207-4b11-9e82-c0a1477e9fb7"
+  id: "Vertex_9246e815-c1b8-4c6b-af08-7c6b6e968d91"
   name: "Atom_end"
 }
 vertices {
-  id: "Vertex_63ffa82c-df73-4c98-84eb-728d816375e9"
+  id: "Vertex_e5bfede4-7f4b-4af0-b23c-bf42c9b6565a"
   name: "VarRef_beg"
 }
 vertices {
-  id: "Vertex_4d578a2e-c2f0-41b7-8bb9-eb02cc063f24"
-  name: "VarRef_11_1"
-}
-vertices {
-  id: "Vertex_64817b9b-9bd8-4fb2-979d-3f054afe14b1"
+  id: "Vertex_24e6cbb9-b350-474b-8f0a-e236df837af4"
   name: "VarRef_end"
 }
 vertices {
-  id: "Vertex_17e1d8c5-d9ce-40e6-8c75-960b2d1d8426"
-  name: "VarRef_12_1"
-}
-vertices {
-  id: "Vertex_65e2bec5-db5f-4b2f-9da7-1ca3c6c9d613"
-  name: "VarRef_13_1"
-}
-vertices {
-  id: "Vertex_50b7e19b-cb0c-4e95-adde-20851106e705"
-  name: "VarRef_14_1"
-}
-vertices {
-  id: "Vertex_5c11fd5d-803d-493a-ae70-520a6e45b6a5"
-  name: "VarRef_15_1"
-}
-vertices {
-  id: "Vertex_e0ccd05c-07fa-4e18-a754-b7b349f80c74"
-  name: "VarRef_16_1"
-}
-vertices {
-  id: "Vertex_90cf3fd2-9439-4682-913f-2a9c83ef4950"
+  id: "Vertex_542da031-920a-4625-96bd-db4abe6ec0c9"
   name: "LList_beg"
 }
 vertices {
-  id: "Vertex_abd436f1-0092-48a2-9ab4-84d973ba4bbe"
-  name: "LList_17_1"
-}
-vertices {
-  id: "Vertex_d398edf2-3496-41cb-a147-02abf6ad6567"
-  name: "LList_17_2"
-}
-vertices {
-  id: "Vertex_e83dafa4-dd4b-4e3d-b028-eb6a962fcd76"
+  id: "Vertex_a3420d43-dabe-480f-8b17-9f25eedf5447"
   name: "LList_end"
 }
 vertices {
-  id: "Vertex_46b404e9-59da-4f59-953d-0f1e7db30c24"
+  id: "Vertex_3e2dbd46-850e-4b15-8e25-f4ae4387dce9"
   name: "PList_beg"
 }
 vertices {
-  id: "Vertex_f2af213c-2e16-47bd-b86b-0fc58ce4792a"
-  name: "PList_18_1"
-}
-vertices {
-  id: "Vertex_b6af6603-a914-41f2-9220-91dd112e5670"
-  name: "PList_18_2"
-}
-vertices {
-  id: "Vertex_56d1990f-9516-4741-97ed-c37ad7f827c6"
+  id: "Vertex_092c1473-a74c-4b99-af27-814906209f4e"
   name: "PList_end"
 }
 vertices {
-  id: "Vertex_f6b0afd2-e1b5-4dac-9cc9-b1392db82159"
+  id: "Vertex_88a167ae-e2ef-445a-9e37-75134fc64735"
   name: "SList_beg"
 }
 vertices {
-  id: "Vertex_ce7ae154-b41f-4b58-9cd8-c7aa41926bf5"
+  id: "Vertex_45f8829f-be50-4d6c-8d2e-a50eb4d004b6"
+  name: "SList_end"
+}
+vertices {
+  id: "Vertex_f6fc9a7e-cddb-4fdb-89b1-b8533a3f8d33"
+  name: "VarRef_11_1"
+}
+vertices {
+  id: "Vertex_fdc493fc-9105-4a8e-8c94-9891de0ebf83"
+  name: "VarRef_12_1"
+}
+vertices {
+  id: "Vertex_bd4fec51-069a-4d0b-a957-dd28a1573ba0"
+  name: "VarRef_13_1"
+}
+vertices {
+  id: "Vertex_a2dd04d4-2bb9-42e4-9257-f0e7089558b7"
+  name: "VarRef_14_1"
+}
+vertices {
+  id: "Vertex_1c48b8da-7346-47ec-ab52-15ddaf01a958"
+  name: "VarRef_15_1"
+}
+vertices {
+  id: "Vertex_9c30ad79-95d6-421f-ae56-895bf892c259"
+  name: "VarRef_16_1"
+}
+vertices {
+  id: "Vertex_6496257b-0716-4cdf-9c91-33f109f205f4"
+  name: "LList_17_1"
+}
+vertices {
+  id: "Vertex_34a9f2a3-6cbd-4169-857e-7d0797e29c8e"
+  name: "LList_17_2"
+}
+vertices {
+  id: "Vertex_9ab731ac-2620-4679-8bdf-d89bce84db1f"
+  name: "PList_18_1"
+}
+vertices {
+  id: "Vertex_ea7397b0-b0d8-46bf-a049-f75697543792"
+  name: "PList_18_2"
+}
+vertices {
+  id: "Vertex_ae971202-88ff-4791-81f6-6245d32d77c0"
   name: "SList_19_1"
 }
 vertices {
-  id: "Vertex_eca4ee58-ed9f-4fdb-8263-a23903dd8140"
+  id: "Vertex_fd27da9a-976f-400d-9975-1258372d8de2"
   name: "SList_19_2"
 }
-vertices {
-  id: "Vertex_3aaf140d-4e7d-488b-924f-1cdfe6af5a19"
-  name: "SList_end"
+edges {
+  id: "Edge_df37f591-d7ca-4f05-b5c2-70e8bc2cce37"
+  vertex1_id: "Vertex_19ee3dfb-431d-48ce-86f4-b9a08f231a16"
+  vertex2_id: "Vertex_4e014a21-08a1-4ee0-8ae8-70ddc56d4415"
+  bracket_id: "BracketsPair_80f3deec-bc66-463a-9eb0-fe278f35f1e7"
 }
 edges {
-  id: "Edge_bbfc2a32-8382-4fd9-995c-88023e38eb3b"
-  vertex1_id: "Vertex_69197e5a-98e2-446c-8fef-acf68cb9fa09"
-  vertex2_id: "Vertex_dea3ce71-31a7-4704-860c-5203d7fac278"
-  bracket_id: "BracketsPair_55e2e65f-0260-4924-96b7-4cb5f384a8ed"
+  id: "Edge_06c08926-1675-407a-90bb-2aef1e320a97"
+  vertex1_id: "Vertex_15ded183-af33-4c1e-9cb4-3b11c6c8f0d0"
+  vertex2_id: "Vertex_9c85339d-26ff-4b4d-a532-e1870302e56d"
+  bracket_id: "BracketsPair_80f3deec-bc66-463a-9eb0-fe278f35f1e7"
 }
 edges {
-  id: "Edge_bc90221d-6920-4aaf-aa8d-db7f46af5c8e"
-  vertex1_id: "Vertex_2284a2ee-b023-4edc-869d-bf889a46b325"
-  vertex2_id: "Vertex_9165200e-5ed5-4d21-9ab3-7629028e1115"
-  bracket_id: "BracketsPair_55e2e65f-0260-4924-96b7-4cb5f384a8ed"
+  id: "Edge_97bfabfe-eacc-40cf-8610-e13a3c1751c3"
+  vertex1_id: "Vertex_9c85339d-26ff-4b4d-a532-e1870302e56d"
+  vertex2_id: "Vertex_19ee3dfb-431d-48ce-86f4-b9a08f231a16"
+  bracket_id: "BracketsPair_90cb6c37-f365-44fb-ac12-02b63c87996b"
 }
 edges {
-  id: "Edge_2a1ad97e-9383-4256-9cec-c2c1be481757"
-  vertex1_id: "Vertex_9165200e-5ed5-4d21-9ab3-7629028e1115"
-  vertex2_id: "Vertex_69197e5a-98e2-446c-8fef-acf68cb9fa09"
-  bracket_id: "BracketsPair_0a8e334d-1f06-439a-8c72-9438177cd8c3"
+  id: "Edge_4931a0b4-5cf1-49fd-83e0-e1760c47c062"
+  vertex1_id: "Vertex_00541bf6-c3f3-44e7-af71-53009f640f86"
+  vertex2_id: "Vertex_00541bf6-c3f3-44e7-af71-53009f640f86"
+  bracket_id: "BracketsPair_90cb6c37-f365-44fb-ac12-02b63c87996b"
 }
 edges {
-  id: "Edge_716d38f2-3c28-4988-9c5a-dbcff5ce6bbb"
-  vertex1_id: "Vertex_37ad90c5-144d-430d-90b7-e54c982c4ac4"
-  vertex2_id: "Vertex_37ad90c5-144d-430d-90b7-e54c982c4ac4"
-  bracket_id: "BracketsPair_0a8e334d-1f06-439a-8c72-9438177cd8c3"
-}
-edges {
-  id: "Edge_332de43b-ac74-4fd3-864b-3f42e429c217"
-  vertex1_id: "Vertex_69197e5a-98e2-446c-8fef-acf68cb9fa09"
-  vertex2_id: "Vertex_37ad90c5-144d-430d-90b7-e54c982c4ac4"
+  id: "Edge_f82b9af6-832e-4357-a6bf-4f4852a07f74"
+  vertex1_id: "Vertex_19ee3dfb-431d-48ce-86f4-b9a08f231a16"
+  vertex2_id: "Vertex_00541bf6-c3f3-44e7-af71-53009f640f86"
   terminal_id: "Terminal_eps"
 }
 edges {
-  id: "Edge_5ba59969-ede8-40ab-ac1d-0b4548c58d09"
-  vertex1_id: "Vertex_dea3ce71-31a7-4704-860c-5203d7fac278"
-  vertex2_id: "Vertex_ce5333aa-7a8e-402e-a43b-e7e8108c8a09"
-  bracket_id: "BracketsPair_9a065457-4f07-4bb1-b75d-2adf04fb3a6e"
+  id: "Edge_725e84b5-2f32-4803-9d8d-c994d79c30e9"
+  vertex1_id: "Vertex_4e014a21-08a1-4ee0-8ae8-70ddc56d4415"
+  vertex2_id: "Vertex_6dbc6a25-0572-4e4f-824e-3e2b9ac4f5c1"
+  bracket_id: "BracketsPair_eebb9eee-e5ed-42ac-9433-14b94ecca75c"
 }
 edges {
-  id: "Edge_76cc8033-be82-4329-87d5-18190c9e334c"
-  vertex1_id: "Vertex_1750bec8-5207-4b11-9e82-c0a1477e9fb7"
-  vertex2_id: "Vertex_2284a2ee-b023-4edc-869d-bf889a46b325"
-  bracket_id: "BracketsPair_9a065457-4f07-4bb1-b75d-2adf04fb3a6e"
+  id: "Edge_bcd4fdd1-4d9f-4425-8842-2f3b65745530"
+  vertex1_id: "Vertex_9246e815-c1b8-4c6b-af08-7c6b6e968d91"
+  vertex2_id: "Vertex_15ded183-af33-4c1e-9cb4-3b11c6c8f0d0"
+  bracket_id: "BracketsPair_eebb9eee-e5ed-42ac-9433-14b94ecca75c"
 }
 edges {
-  id: "Edge_e21a481a-cc71-46e9-9193-21eeb82f9e67"
-  vertex1_id: "Vertex_dea3ce71-31a7-4704-860c-5203d7fac278"
-  vertex2_id: "Vertex_63ffa82c-df73-4c98-84eb-728d816375e9"
-  bracket_id: "BracketsPair_e4143920-c8d1-4374-845d-6e14a41a14e5"
+  id: "Edge_1c51e11d-f864-4da9-97ea-1bf6f37102f0"
+  vertex1_id: "Vertex_4e014a21-08a1-4ee0-8ae8-70ddc56d4415"
+  vertex2_id: "Vertex_e5bfede4-7f4b-4af0-b23c-bf42c9b6565a"
+  bracket_id: "BracketsPair_9e9a2c13-da92-443c-803c-ac884d0b52ab"
 }
 edges {
-  id: "Edge_366806d7-14fd-40b8-a0cd-51b277f0bdad"
-  vertex1_id: "Vertex_64817b9b-9bd8-4fb2-979d-3f054afe14b1"
-  vertex2_id: "Vertex_2284a2ee-b023-4edc-869d-bf889a46b325"
-  bracket_id: "BracketsPair_e4143920-c8d1-4374-845d-6e14a41a14e5"
+  id: "Edge_b46c187e-4bc4-4f24-8aea-513062104d1c"
+  vertex1_id: "Vertex_24e6cbb9-b350-474b-8f0a-e236df837af4"
+  vertex2_id: "Vertex_15ded183-af33-4c1e-9cb4-3b11c6c8f0d0"
+  bracket_id: "BracketsPair_9e9a2c13-da92-443c-803c-ac884d0b52ab"
 }
 edges {
-  id: "Edge_2434bb08-c9a0-4ecf-8d58-86d38a171f54"
-  vertex1_id: "Vertex_dea3ce71-31a7-4704-860c-5203d7fac278"
-  vertex2_id: "Vertex_90cf3fd2-9439-4682-913f-2a9c83ef4950"
-  bracket_id: "BracketsPair_bd2b5674-a6a0-482d-b188-29f5107e7281"
+  id: "Edge_14ae08ac-2371-4c39-bf38-d674d96f140e"
+  vertex1_id: "Vertex_4e014a21-08a1-4ee0-8ae8-70ddc56d4415"
+  vertex2_id: "Vertex_542da031-920a-4625-96bd-db4abe6ec0c9"
+  bracket_id: "BracketsPair_cd1f4169-31d9-45c0-b96c-e76f2ac9c4e1"
 }
 edges {
-  id: "Edge_8ce92c6f-faa5-4b6b-861f-5b9152dd8cf7"
-  vertex1_id: "Vertex_e83dafa4-dd4b-4e3d-b028-eb6a962fcd76"
-  vertex2_id: "Vertex_2284a2ee-b023-4edc-869d-bf889a46b325"
-  bracket_id: "BracketsPair_bd2b5674-a6a0-482d-b188-29f5107e7281"
+  id: "Edge_729b832f-f7cc-4687-97a4-3e955c9012a5"
+  vertex1_id: "Vertex_a3420d43-dabe-480f-8b17-9f25eedf5447"
+  vertex2_id: "Vertex_15ded183-af33-4c1e-9cb4-3b11c6c8f0d0"
+  bracket_id: "BracketsPair_cd1f4169-31d9-45c0-b96c-e76f2ac9c4e1"
 }
 edges {
-  id: "Edge_24cce264-3d86-4b23-a124-5645880bea3d"
-  vertex1_id: "Vertex_dea3ce71-31a7-4704-860c-5203d7fac278"
-  vertex2_id: "Vertex_46b404e9-59da-4f59-953d-0f1e7db30c24"
-  bracket_id: "BracketsPair_c5b90ee8-d60b-4f5c-a504-95cb29419957"
+  id: "Edge_b898951e-656b-40a6-bef4-fa93c917f474"
+  vertex1_id: "Vertex_4e014a21-08a1-4ee0-8ae8-70ddc56d4415"
+  vertex2_id: "Vertex_3e2dbd46-850e-4b15-8e25-f4ae4387dce9"
+  bracket_id: "BracketsPair_9702c831-3ff6-496d-85d3-a9af963a3410"
 }
 edges {
-  id: "Edge_8445269b-ae39-438f-8ea5-3b5d7d895745"
-  vertex1_id: "Vertex_56d1990f-9516-4741-97ed-c37ad7f827c6"
-  vertex2_id: "Vertex_2284a2ee-b023-4edc-869d-bf889a46b325"
-  bracket_id: "BracketsPair_c5b90ee8-d60b-4f5c-a504-95cb29419957"
+  id: "Edge_f2cb302d-2bde-4761-8cb3-489dcb45be74"
+  vertex1_id: "Vertex_092c1473-a74c-4b99-af27-814906209f4e"
+  vertex2_id: "Vertex_15ded183-af33-4c1e-9cb4-3b11c6c8f0d0"
+  bracket_id: "BracketsPair_9702c831-3ff6-496d-85d3-a9af963a3410"
 }
 edges {
-  id: "Edge_79804431-caaf-4456-885f-bd1a32ff3ea4"
-  vertex1_id: "Vertex_dea3ce71-31a7-4704-860c-5203d7fac278"
-  vertex2_id: "Vertex_f6b0afd2-e1b5-4dac-9cc9-b1392db82159"
-  bracket_id: "BracketsPair_9b2449cf-03a6-4921-b2ef-c8d383653e08"
+  id: "Edge_328d04cb-682c-4a0c-b24c-b3fa91986bf7"
+  vertex1_id: "Vertex_4e014a21-08a1-4ee0-8ae8-70ddc56d4415"
+  vertex2_id: "Vertex_88a167ae-e2ef-445a-9e37-75134fc64735"
+  bracket_id: "BracketsPair_eb9f79a5-9cd8-4dbe-87c7-60e46e91db3d"
 }
 edges {
-  id: "Edge_4fa0773b-023e-4ed4-b744-eebb102ed0af"
-  vertex1_id: "Vertex_3aaf140d-4e7d-488b-924f-1cdfe6af5a19"
-  vertex2_id: "Vertex_2284a2ee-b023-4edc-869d-bf889a46b325"
-  bracket_id: "BracketsPair_9b2449cf-03a6-4921-b2ef-c8d383653e08"
+  id: "Edge_b9d4ce35-8c21-4077-9ffa-bc937aff1ec9"
+  vertex1_id: "Vertex_45f8829f-be50-4d6c-8d2e-a50eb4d004b6"
+  vertex2_id: "Vertex_15ded183-af33-4c1e-9cb4-3b11c6c8f0d0"
+  bracket_id: "BracketsPair_eb9f79a5-9cd8-4dbe-87c7-60e46e91db3d"
 }
 edges {
-  id: "Edge_edfbe906-705f-41dc-84f7-33cecc06f076"
-  vertex1_id: "Vertex_ce5333aa-7a8e-402e-a43b-e7e8108c8a09"
-  vertex2_id: "Vertex_1750bec8-5207-4b11-9e82-c0a1477e9fb7"
-  terminal_id: "Terminal_e1ab5b19-a8df-42b2-b3d3-73969d07e007"
+  id: "Edge_b931a6d0-367c-47c3-be98-c0feaebd485f"
+  vertex1_id: "Vertex_6dbc6a25-0572-4e4f-824e-3e2b9ac4f5c1"
+  vertex2_id: "Vertex_9246e815-c1b8-4c6b-af08-7c6b6e968d91"
+  terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
 }
 edges {
-  id: "Edge_0fb0f532-dbc7-41bf-8b8b-22e9a8a78722"
-  vertex1_id: "Vertex_ce5333aa-7a8e-402e-a43b-e7e8108c8a09"
-  vertex2_id: "Vertex_1750bec8-5207-4b11-9e82-c0a1477e9fb7"
-  terminal_id: "Terminal_0a429ac6-c1cd-4282-b34e-4a447d946ebd"
+  id: "Edge_135b0a5c-d01b-4e8c-b03c-c907914474da"
+  vertex1_id: "Vertex_6dbc6a25-0572-4e4f-824e-3e2b9ac4f5c1"
+  vertex2_id: "Vertex_9246e815-c1b8-4c6b-af08-7c6b6e968d91"
+  terminal_id: "Terminal_dc415887-0e5d-4341-86fe-fb6c2a9772ec"
 }
 edges {
-  id: "Edge_009539d4-36d7-43b9-a1f8-e0710ed3bcc3"
-  vertex1_id: "Vertex_ce5333aa-7a8e-402e-a43b-e7e8108c8a09"
-  vertex2_id: "Vertex_1750bec8-5207-4b11-9e82-c0a1477e9fb7"
-  terminal_id: "Terminal_fe3dec01-ab98-4d2b-9f53-45442af37291"
+  id: "Edge_f8ccc797-a7b9-41c1-ad5c-38d7d77e9cb2"
+  vertex1_id: "Vertex_6dbc6a25-0572-4e4f-824e-3e2b9ac4f5c1"
+  vertex2_id: "Vertex_9246e815-c1b8-4c6b-af08-7c6b6e968d91"
+  terminal_id: "Terminal_ceeebfb8-86e8-49e4-80a8-4bbe2d1b5971"
 }
 edges {
-  id: "Edge_ab6dba4e-d8e5-42eb-aa1b-9f3bf465eab6"
-  vertex1_id: "Vertex_ce5333aa-7a8e-402e-a43b-e7e8108c8a09"
-  vertex2_id: "Vertex_1750bec8-5207-4b11-9e82-c0a1477e9fb7"
-  terminal_id: "Terminal_83d1bb60-7db6-4b78-82a6-bcdb280f479f"
+  id: "Edge_a22b098e-403a-4c63-b9c4-a4b557110a32"
+  vertex1_id: "Vertex_6dbc6a25-0572-4e4f-824e-3e2b9ac4f5c1"
+  vertex2_id: "Vertex_9246e815-c1b8-4c6b-af08-7c6b6e968d91"
+  terminal_id: "Terminal_a4ad5875-481d-4175-a796-0f24b6bae605"
 }
 edges {
-  id: "Edge_10de1052-95b4-4410-80ad-035d61cd3205"
-  vertex1_id: "Vertex_63ffa82c-df73-4c98-84eb-728d816375e9"
-  vertex2_id: "Vertex_4d578a2e-c2f0-41b7-8bb9-eb02cc063f24"
-  terminal_id: "Terminal_b088cede-e45e-4a20-b32e-0587de5e5a52"
+  id: "Edge_7f35c36e-123f-4dbd-95df-d92a9d85c114"
+  vertex1_id: "Vertex_e5bfede4-7f4b-4af0-b23c-bf42c9b6565a"
+  vertex2_id: "Vertex_f6fc9a7e-cddb-4fdb-89b1-b8533a3f8d33"
+  terminal_id: "Terminal_6b85f3d5-a9eb-45b7-9e0c-eeaf7f889728"
 }
 edges {
-  id: "Edge_d8557b90-1368-4fcf-bc60-700286f00e7b"
-  vertex1_id: "Vertex_4d578a2e-c2f0-41b7-8bb9-eb02cc063f24"
-  vertex2_id: "Vertex_64817b9b-9bd8-4fb2-979d-3f054afe14b1"
-  terminal_id: "Terminal_e1ab5b19-a8df-42b2-b3d3-73969d07e007"
+  id: "Edge_d6a24bb7-9561-4530-ba4e-fe82effff195"
+  vertex1_id: "Vertex_f6fc9a7e-cddb-4fdb-89b1-b8533a3f8d33"
+  vertex2_id: "Vertex_24e6cbb9-b350-474b-8f0a-e236df837af4"
+  terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
 }
 edges {
-  id: "Edge_ce092764-816e-4e4b-9200-f6209005445a"
-  vertex1_id: "Vertex_63ffa82c-df73-4c98-84eb-728d816375e9"
-  vertex2_id: "Vertex_17e1d8c5-d9ce-40e6-8c75-960b2d1d8426"
-  terminal_id: "Terminal_632042e1-ffef-4237-862e-facd0dc5cf25"
+  id: "Edge_3badf0a6-2657-4213-81c6-9413e75bba57"
+  vertex1_id: "Vertex_e5bfede4-7f4b-4af0-b23c-bf42c9b6565a"
+  vertex2_id: "Vertex_fdc493fc-9105-4a8e-8c94-9891de0ebf83"
+  terminal_id: "Terminal_4e467477-c6f3-4f4c-bf6e-d83fbd6aa0ae"
 }
 edges {
-  id: "Edge_c45abf82-80db-4111-abc9-7baad138e867"
-  vertex1_id: "Vertex_17e1d8c5-d9ce-40e6-8c75-960b2d1d8426"
-  vertex2_id: "Vertex_64817b9b-9bd8-4fb2-979d-3f054afe14b1"
-  terminal_id: "Terminal_e1ab5b19-a8df-42b2-b3d3-73969d07e007"
+  id: "Edge_b2e1878c-5c66-47ec-9c98-0881c1d7e722"
+  vertex1_id: "Vertex_fdc493fc-9105-4a8e-8c94-9891de0ebf83"
+  vertex2_id: "Vertex_24e6cbb9-b350-474b-8f0a-e236df837af4"
+  terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
 }
 edges {
-  id: "Edge_e005d027-1836-41f5-a4da-8ed5faa0cfe4"
-  vertex1_id: "Vertex_63ffa82c-df73-4c98-84eb-728d816375e9"
-  vertex2_id: "Vertex_65e2bec5-db5f-4b2f-9da7-1ca3c6c9d613"
-  terminal_id: "Terminal_f3877f5e-595b-457c-8c3b-8559ec817243"
+  id: "Edge_7b1d75b6-1eec-4537-9b70-0e0bd1118071"
+  vertex1_id: "Vertex_e5bfede4-7f4b-4af0-b23c-bf42c9b6565a"
+  vertex2_id: "Vertex_bd4fec51-069a-4d0b-a957-dd28a1573ba0"
+  terminal_id: "Terminal_4be865ed-bdf9-4aff-a776-706620870e53"
 }
 edges {
-  id: "Edge_f1246376-3dd8-4bc8-992d-11d469a17cb2"
-  vertex1_id: "Vertex_65e2bec5-db5f-4b2f-9da7-1ca3c6c9d613"
-  vertex2_id: "Vertex_64817b9b-9bd8-4fb2-979d-3f054afe14b1"
-  terminal_id: "Terminal_e1ab5b19-a8df-42b2-b3d3-73969d07e007"
+  id: "Edge_e5fd05da-eca9-455e-8c98-e382680a0c2a"
+  vertex1_id: "Vertex_bd4fec51-069a-4d0b-a957-dd28a1573ba0"
+  vertex2_id: "Vertex_24e6cbb9-b350-474b-8f0a-e236df837af4"
+  terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
 }
 edges {
-  id: "Edge_ced06ff4-9af6-46ab-a59c-cdea6652a014"
-  vertex1_id: "Vertex_63ffa82c-df73-4c98-84eb-728d816375e9"
-  vertex2_id: "Vertex_50b7e19b-cb0c-4e95-adde-20851106e705"
-  terminal_id: "Terminal_cc20691b-bfa8-4ef7-8d49-4528bc3c620b"
+  id: "Edge_5f1311fe-582a-4bc8-86e4-89d7bf4a49c2"
+  vertex1_id: "Vertex_e5bfede4-7f4b-4af0-b23c-bf42c9b6565a"
+  vertex2_id: "Vertex_a2dd04d4-2bb9-42e4-9257-f0e7089558b7"
+  terminal_id: "Terminal_6ebf7b8e-c6ae-460d-931a-04005912e1fc"
 }
 edges {
-  id: "Edge_9073e8d1-f2b9-4420-88ee-91631e8f37e0"
-  vertex1_id: "Vertex_50b7e19b-cb0c-4e95-adde-20851106e705"
-  vertex2_id: "Vertex_64817b9b-9bd8-4fb2-979d-3f054afe14b1"
-  terminal_id: "Terminal_e1ab5b19-a8df-42b2-b3d3-73969d07e007"
+  id: "Edge_d996a4ce-7259-41f6-a104-9e12eb6fe210"
+  vertex1_id: "Vertex_a2dd04d4-2bb9-42e4-9257-f0e7089558b7"
+  vertex2_id: "Vertex_24e6cbb9-b350-474b-8f0a-e236df837af4"
+  terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
 }
 edges {
-  id: "Edge_7967ddbc-9a8b-44fc-8373-dc4afa9658a8"
-  vertex1_id: "Vertex_63ffa82c-df73-4c98-84eb-728d816375e9"
-  vertex2_id: "Vertex_5c11fd5d-803d-493a-ae70-520a6e45b6a5"
-  terminal_id: "Terminal_ef173986-6466-4ab0-a01a-343890af2d24"
+  id: "Edge_78906282-c2bb-48b0-abf5-b34540a0d427"
+  vertex1_id: "Vertex_e5bfede4-7f4b-4af0-b23c-bf42c9b6565a"
+  vertex2_id: "Vertex_1c48b8da-7346-47ec-ab52-15ddaf01a958"
+  terminal_id: "Terminal_c9e10a7c-6d25-424b-b3dd-7e5d9b4c7ee3"
 }
 edges {
-  id: "Edge_466fe219-3635-4e60-9d45-d7faf3244428"
-  vertex1_id: "Vertex_5c11fd5d-803d-493a-ae70-520a6e45b6a5"
-  vertex2_id: "Vertex_64817b9b-9bd8-4fb2-979d-3f054afe14b1"
-  terminal_id: "Terminal_e1ab5b19-a8df-42b2-b3d3-73969d07e007"
+  id: "Edge_c1d6fde6-b072-44e5-9b14-c11b9849ffef"
+  vertex1_id: "Vertex_1c48b8da-7346-47ec-ab52-15ddaf01a958"
+  vertex2_id: "Vertex_24e6cbb9-b350-474b-8f0a-e236df837af4"
+  terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
 }
 edges {
-  id: "Edge_839f8708-444f-440c-a5c8-b769634a2edb"
-  vertex1_id: "Vertex_63ffa82c-df73-4c98-84eb-728d816375e9"
-  vertex2_id: "Vertex_e0ccd05c-07fa-4e18-a754-b7b349f80c74"
-  terminal_id: "Terminal_f07b14af-bf7e-46f3-a221-14eb72976e19"
+  id: "Edge_d594ce8b-d243-4dd3-b8eb-6aa21cc04dc4"
+  vertex1_id: "Vertex_e5bfede4-7f4b-4af0-b23c-bf42c9b6565a"
+  vertex2_id: "Vertex_9c30ad79-95d6-421f-ae56-895bf892c259"
+  terminal_id: "Terminal_e9e5bfdd-ae12-491f-a2ad-8cc2f3be45fa"
 }
 edges {
-  id: "Edge_bea40bed-4ab2-437d-b4d6-fc315f4a031f"
-  vertex1_id: "Vertex_e0ccd05c-07fa-4e18-a754-b7b349f80c74"
-  vertex2_id: "Vertex_64817b9b-9bd8-4fb2-979d-3f054afe14b1"
-  terminal_id: "Terminal_e1ab5b19-a8df-42b2-b3d3-73969d07e007"
+  id: "Edge_2abecc96-02da-4d3d-bc5f-ebca337623d0"
+  vertex1_id: "Vertex_9c30ad79-95d6-421f-ae56-895bf892c259"
+  vertex2_id: "Vertex_24e6cbb9-b350-474b-8f0a-e236df837af4"
+  terminal_id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
 }
 edges {
-  id: "Edge_95fc9912-3496-47ed-9728-d3c2cdf4965b"
-  vertex1_id: "Vertex_90cf3fd2-9439-4682-913f-2a9c83ef4950"
-  vertex2_id: "Vertex_abd436f1-0092-48a2-9ab4-84d973ba4bbe"
-  terminal_id: "Terminal_82f79eae-b9f9-42dc-9321-b3d3e2818e61"
+  id: "Edge_a11f577e-b022-448f-9635-f59d252c14dd"
+  vertex1_id: "Vertex_542da031-920a-4625-96bd-db4abe6ec0c9"
+  vertex2_id: "Vertex_6496257b-0716-4cdf-9c91-33f109f205f4"
+  terminal_id: "Terminal_fe15ce0f-7ffa-472a-a1f7-a96b825ea8b1"
 }
 edges {
-  id: "Edge_ceb6283a-3263-4870-96c3-e1aa28ecd8ac"
-  vertex1_id: "Vertex_abd436f1-0092-48a2-9ab4-84d973ba4bbe"
-  vertex2_id: "Vertex_69197e5a-98e2-446c-8fef-acf68cb9fa09"
-  bracket_id: "BracketsPair_26f00645-74f6-4a32-8b31-bbfe7eb04927"
+  id: "Edge_964fc25a-9edc-4217-ab1b-876b7b2ccd58"
+  vertex1_id: "Vertex_6496257b-0716-4cdf-9c91-33f109f205f4"
+  vertex2_id: "Vertex_19ee3dfb-431d-48ce-86f4-b9a08f231a16"
+  bracket_id: "BracketsPair_c996e528-697a-43fc-bc24-e64232b2e407"
 }
 edges {
-  id: "Edge_f727962e-961d-4e23-b0fb-4daf5ba36a5e"
-  vertex1_id: "Vertex_37ad90c5-144d-430d-90b7-e54c982c4ac4"
-  vertex2_id: "Vertex_d398edf2-3496-41cb-a147-02abf6ad6567"
-  bracket_id: "BracketsPair_26f00645-74f6-4a32-8b31-bbfe7eb04927"
+  id: "Edge_5b8b09ec-739a-478e-bad9-99fec07aeebc"
+  vertex1_id: "Vertex_00541bf6-c3f3-44e7-af71-53009f640f86"
+  vertex2_id: "Vertex_34a9f2a3-6cbd-4169-857e-7d0797e29c8e"
+  bracket_id: "BracketsPair_c996e528-697a-43fc-bc24-e64232b2e407"
 }
 edges {
-  id: "Edge_53859b4c-4041-4285-8024-d1554a82df02"
-  vertex1_id: "Vertex_d398edf2-3496-41cb-a147-02abf6ad6567"
-  vertex2_id: "Vertex_e83dafa4-dd4b-4e3d-b028-eb6a962fcd76"
-  terminal_id: "Terminal_2af202f1-cccf-451a-aeb3-60833baa6854"
+  id: "Edge_d04d5d94-7c1c-4b17-9dfb-43004ba90bde"
+  vertex1_id: "Vertex_34a9f2a3-6cbd-4169-857e-7d0797e29c8e"
+  vertex2_id: "Vertex_a3420d43-dabe-480f-8b17-9f25eedf5447"
+  terminal_id: "Terminal_0288b0c0-89ea-4892-a488-b41764720f10"
 }
 edges {
-  id: "Edge_fbf28dad-fa23-44c5-90bc-0c658650a234"
-  vertex1_id: "Vertex_46b404e9-59da-4f59-953d-0f1e7db30c24"
-  vertex2_id: "Vertex_f2af213c-2e16-47bd-b86b-0fc58ce4792a"
-  terminal_id: "Terminal_06d07244-84c2-4822-bd38-16f6b21c9617"
+  id: "Edge_fa38feb7-75ff-4307-aa4c-5a09a51b002d"
+  vertex1_id: "Vertex_3e2dbd46-850e-4b15-8e25-f4ae4387dce9"
+  vertex2_id: "Vertex_9ab731ac-2620-4679-8bdf-d89bce84db1f"
+  terminal_id: "Terminal_0e06bb0a-4a45-41d1-8c92-7786535dd1e3"
 }
 edges {
-  id: "Edge_4831a09a-d2e5-401a-b0e6-93c9b0a9397d"
-  vertex1_id: "Vertex_f2af213c-2e16-47bd-b86b-0fc58ce4792a"
-  vertex2_id: "Vertex_69197e5a-98e2-446c-8fef-acf68cb9fa09"
-  bracket_id: "BracketsPair_d08381f6-f3a7-4c46-968a-d9159ed1360e"
+  id: "Edge_c9063a9b-7715-45f0-9c3c-04630003ebba"
+  vertex1_id: "Vertex_9ab731ac-2620-4679-8bdf-d89bce84db1f"
+  vertex2_id: "Vertex_19ee3dfb-431d-48ce-86f4-b9a08f231a16"
+  bracket_id: "BracketsPair_ace55b9c-7961-4ef4-b833-bd2cc0225f3c"
 }
 edges {
-  id: "Edge_c8aaadaf-2510-4e45-98b0-afaff1147232"
-  vertex1_id: "Vertex_37ad90c5-144d-430d-90b7-e54c982c4ac4"
-  vertex2_id: "Vertex_b6af6603-a914-41f2-9220-91dd112e5670"
-  bracket_id: "BracketsPair_d08381f6-f3a7-4c46-968a-d9159ed1360e"
+  id: "Edge_2d8f5d53-741f-44cf-bfaf-9f4dae86c2b9"
+  vertex1_id: "Vertex_00541bf6-c3f3-44e7-af71-53009f640f86"
+  vertex2_id: "Vertex_ea7397b0-b0d8-46bf-a049-f75697543792"
+  bracket_id: "BracketsPair_ace55b9c-7961-4ef4-b833-bd2cc0225f3c"
 }
 edges {
-  id: "Edge_be86bf79-a828-4866-bf5e-834ce774cfef"
-  vertex1_id: "Vertex_b6af6603-a914-41f2-9220-91dd112e5670"
-  vertex2_id: "Vertex_56d1990f-9516-4741-97ed-c37ad7f827c6"
-  terminal_id: "Terminal_f074e49c-be8e-4b60-9cc1-cbb76901e16d"
+  id: "Edge_34954632-7d85-43fe-8d4f-2f70fa69e3cb"
+  vertex1_id: "Vertex_ea7397b0-b0d8-46bf-a049-f75697543792"
+  vertex2_id: "Vertex_092c1473-a74c-4b99-af27-814906209f4e"
+  terminal_id: "Terminal_db65c886-27ee-412f-b618-3890599f0d0a"
 }
 edges {
-  id: "Edge_0efbb868-77d6-41c7-83dc-3dbfd23ba309"
-  vertex1_id: "Vertex_f6b0afd2-e1b5-4dac-9cc9-b1392db82159"
-  vertex2_id: "Vertex_ce7ae154-b41f-4b58-9cd8-c7aa41926bf5"
-  terminal_id: "Terminal_afa3c6c8-08a8-46a6-995b-129a846b6d6f"
+  id: "Edge_71eecfc7-d094-4fc5-9795-e896b34509b8"
+  vertex1_id: "Vertex_88a167ae-e2ef-445a-9e37-75134fc64735"
+  vertex2_id: "Vertex_ae971202-88ff-4791-81f6-6245d32d77c0"
+  terminal_id: "Terminal_97a5ca34-6e06-4909-88ad-8098dc6d76c3"
 }
 edges {
-  id: "Edge_0ee79d29-0346-4e50-b53d-a8ec555b7ac0"
-  vertex1_id: "Vertex_ce7ae154-b41f-4b58-9cd8-c7aa41926bf5"
-  vertex2_id: "Vertex_69197e5a-98e2-446c-8fef-acf68cb9fa09"
-  bracket_id: "BracketsPair_29e1d85d-9151-453e-acba-3c3540e54e28"
+  id: "Edge_21ac09f6-8dfb-4319-b226-43cf2c8f0633"
+  vertex1_id: "Vertex_ae971202-88ff-4791-81f6-6245d32d77c0"
+  vertex2_id: "Vertex_19ee3dfb-431d-48ce-86f4-b9a08f231a16"
+  bracket_id: "BracketsPair_b756adb8-72df-4fdb-b48e-29de442a5362"
 }
 edges {
-  id: "Edge_aa4d6f37-f253-4254-85db-8fa2377b8d3f"
-  vertex1_id: "Vertex_37ad90c5-144d-430d-90b7-e54c982c4ac4"
-  vertex2_id: "Vertex_eca4ee58-ed9f-4fdb-8263-a23903dd8140"
-  bracket_id: "BracketsPair_29e1d85d-9151-453e-acba-3c3540e54e28"
+  id: "Edge_687b076a-f4eb-416c-85bf-f54a6189065e"
+  vertex1_id: "Vertex_00541bf6-c3f3-44e7-af71-53009f640f86"
+  vertex2_id: "Vertex_fd27da9a-976f-400d-9975-1258372d8de2"
+  bracket_id: "BracketsPair_b756adb8-72df-4fdb-b48e-29de442a5362"
 }
 edges {
-  id: "Edge_e8082116-2aa2-4d49-b71d-a56544af8b69"
-  vertex1_id: "Vertex_eca4ee58-ed9f-4fdb-8263-a23903dd8140"
-  vertex2_id: "Vertex_3aaf140d-4e7d-488b-924f-1cdfe6af5a19"
-  terminal_id: "Terminal_255ba4cb-cc7d-4db4-9b96-1e80e0733b36"
+  id: "Edge_2b3bb828-c8e6-4eb3-8d00-5030c699b709"
+  vertex1_id: "Vertex_fd27da9a-976f-400d-9975-1258372d8de2"
+  vertex2_id: "Vertex_45f8829f-be50-4d6c-8d2e-a50eb4d004b6"
+  terminal_id: "Terminal_4e7dbbcd-9bfe-45dc-a211-f69c4f137586"
 }
-initial: "Vertex_dea3ce71-31a7-4704-860c-5203d7fac278"
-final: "Vertex_2284a2ee-b023-4edc-869d-bf889a46b325"
+initial: "Vertex_4e014a21-08a1-4ee0-8ae8-70ddc56d4415"
+final: "Vertex_15ded183-af33-4c1e-9cb4-3b11c6c8f0d0"
 terminals {
-  id: "Terminal_e1ab5b19-a8df-42b2-b3d3-73969d07e007"
+  id: "Terminal_fd988886-decc-4098-8cd2-2226d5c32969"
   value: "IDENT"
 }
 terminals {
-  id: "Terminal_0a429ac6-c1cd-4282-b34e-4a447d946ebd"
+  id: "Terminal_dc415887-0e5d-4341-86fe-fb6c2a9772ec"
   value: "INT"
 }
 terminals {
-  id: "Terminal_fe3dec01-ab98-4d2b-9f53-45442af37291"
+  id: "Terminal_ceeebfb8-86e8-49e4-80a8-4bbe2d1b5971"
   value: "FLOAT"
 }
 terminals {
-  id: "Terminal_83d1bb60-7db6-4b78-82a6-bcdb280f479f"
+  id: "Terminal_a4ad5875-481d-4175-a796-0f24b6bae605"
   value: "SCALE"
 }
 terminals {
-  id: "Terminal_82f79eae-b9f9-42dc-9321-b3d3e2818e61"
+  id: "Terminal_fe15ce0f-7ffa-472a-a1f7-a96b825ea8b1"
   value: "LPAREN"
 }
 terminals {
-  id: "Terminal_2af202f1-cccf-451a-aeb3-60833baa6854"
+  id: "Terminal_0288b0c0-89ea-4892-a488-b41764720f10"
   value: "RPAREN"
 }
 terminals {
-  id: "Terminal_06d07244-84c2-4822-bd38-16f6b21c9617"
+  id: "Terminal_0e06bb0a-4a45-41d1-8c92-7786535dd1e3"
   value: "LBRACKET"
 }
 terminals {
-  id: "Terminal_f074e49c-be8e-4b60-9cc1-cbb76901e16d"
+  id: "Terminal_db65c886-27ee-412f-b618-3890599f0d0a"
   value: "RBRACKET"
 }
 terminals {
-  id: "Terminal_afa3c6c8-08a8-46a6-995b-129a846b6d6f"
+  id: "Terminal_97a5ca34-6e06-4909-88ad-8098dc6d76c3"
   value: "LANGLE"
 }
 terminals {
-  id: "Terminal_255ba4cb-cc7d-4db4-9b96-1e80e0733b36"
+  id: "Terminal_4e7dbbcd-9bfe-45dc-a211-f69c4f137586"
   value: "RANGLE"
 }
 terminals {
-  id: "Terminal_b088cede-e45e-4a20-b32e-0587de5e5a52"
+  id: "Terminal_6b85f3d5-a9eb-45b7-9e0c-eeaf7f889728"
   value: "DOT"
 }
 terminals {
-  id: "Terminal_632042e1-ffef-4237-862e-facd0dc5cf25"
+  id: "Terminal_4e467477-c6f3-4f4c-bf6e-d83fbd6aa0ae"
   value: "STAR"
 }
 terminals {
-  id: "Terminal_f3877f5e-595b-457c-8c3b-8559ec817243"
+  id: "Terminal_4be865ed-bdf9-4aff-a776-706620870e53"
   value: "COLON"
 }
 terminals {
-  id: "Terminal_cc20691b-bfa8-4ef7-8d49-4528bc3c620b"
+  id: "Terminal_6ebf7b8e-c6ae-460d-931a-04005912e1fc"
   value: "BANG_DOT"
 }
 terminals {
-  id: "Terminal_ef173986-6466-4ab0-a01a-343890af2d24"
+  id: "Terminal_c9e10a7c-6d25-424b-b3dd-7e5d9b4c7ee3"
   value: "BANG_STAR"
 }
 terminals {
-  id: "Terminal_f07b14af-bf7e-46f3-a221-14eb72976e19"
+  id: "Terminal_e9e5bfdd-ae12-491f-a2ad-8cc2f3be45fa"
   value: "BANG_COLON"
 }
 terminals {
@@ -435,82 +435,157 @@ terminals {
   value: "eps"
 }
 brackets {
-  id: "BracketsPair_55e2e65f-0260-4924-96b7-4cb5f384a8ed"
+  id: "BracketsPair_80f3deec-bc66-463a-9eb0-fe278f35f1e7"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_55e2e65f-0260-4924-96b7-4cb5f384a8ed"
+  id: "BracketsPair_80f3deec-bc66-463a-9eb0-fe278f35f1e7"
   type: "CLOSE"
 }
 brackets {
-  id: "BracketsPair_0a8e334d-1f06-439a-8c72-9438177cd8c3"
+  id: "BracketsPair_90cb6c37-f365-44fb-ac12-02b63c87996b"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_0a8e334d-1f06-439a-8c72-9438177cd8c3"
+  id: "BracketsPair_90cb6c37-f365-44fb-ac12-02b63c87996b"
   type: "CLOSE"
 }
 brackets {
-  id: "BracketsPair_9a065457-4f07-4bb1-b75d-2adf04fb3a6e"
+  id: "BracketsPair_eebb9eee-e5ed-42ac-9433-14b94ecca75c"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_9a065457-4f07-4bb1-b75d-2adf04fb3a6e"
+  id: "BracketsPair_eebb9eee-e5ed-42ac-9433-14b94ecca75c"
   type: "CLOSE"
 }
 brackets {
-  id: "BracketsPair_e4143920-c8d1-4374-845d-6e14a41a14e5"
+  id: "BracketsPair_9e9a2c13-da92-443c-803c-ac884d0b52ab"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_e4143920-c8d1-4374-845d-6e14a41a14e5"
+  id: "BracketsPair_9e9a2c13-da92-443c-803c-ac884d0b52ab"
   type: "CLOSE"
 }
 brackets {
-  id: "BracketsPair_bd2b5674-a6a0-482d-b188-29f5107e7281"
+  id: "BracketsPair_cd1f4169-31d9-45c0-b96c-e76f2ac9c4e1"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_bd2b5674-a6a0-482d-b188-29f5107e7281"
+  id: "BracketsPair_cd1f4169-31d9-45c0-b96c-e76f2ac9c4e1"
   type: "CLOSE"
 }
 brackets {
-  id: "BracketsPair_c5b90ee8-d60b-4f5c-a504-95cb29419957"
+  id: "BracketsPair_9702c831-3ff6-496d-85d3-a9af963a3410"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_c5b90ee8-d60b-4f5c-a504-95cb29419957"
+  id: "BracketsPair_9702c831-3ff6-496d-85d3-a9af963a3410"
   type: "CLOSE"
 }
 brackets {
-  id: "BracketsPair_9b2449cf-03a6-4921-b2ef-c8d383653e08"
+  id: "BracketsPair_eb9f79a5-9cd8-4dbe-87c7-60e46e91db3d"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_9b2449cf-03a6-4921-b2ef-c8d383653e08"
+  id: "BracketsPair_eb9f79a5-9cd8-4dbe-87c7-60e46e91db3d"
   type: "CLOSE"
 }
 brackets {
-  id: "BracketsPair_26f00645-74f6-4a32-8b31-bbfe7eb04927"
+  id: "BracketsPair_c996e528-697a-43fc-bc24-e64232b2e407"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_26f00645-74f6-4a32-8b31-bbfe7eb04927"
+  id: "BracketsPair_c996e528-697a-43fc-bc24-e64232b2e407"
   type: "CLOSE"
 }
 brackets {
-  id: "BracketsPair_d08381f6-f3a7-4c46-968a-d9159ed1360e"
+  id: "BracketsPair_ace55b9c-7961-4ef4-b833-bd2cc0225f3c"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_d08381f6-f3a7-4c46-968a-d9159ed1360e"
+  id: "BracketsPair_ace55b9c-7961-4ef4-b833-bd2cc0225f3c"
   type: "CLOSE"
 }
 brackets {
-  id: "BracketsPair_29e1d85d-9151-453e-acba-3c3540e54e28"
+  id: "BracketsPair_b756adb8-72df-4fdb-b48e-29de442a5362"
   type: "OPEN"
 }
 brackets {
-  id: "BracketsPair_29e1d85d-9151-453e-acba-3c3540e54e28"
+  id: "BracketsPair_b756adb8-72df-4fdb-b48e-29de442a5362"
   type: "CLOSE"
+}
+nullable: "FormList"
+first {
+  key: "Atom"
+  value {
+    terminals: "FLOAT"
+    terminals: "IDENT"
+    terminals: "INT"
+    terminals: "SCALE"
+  }
+}
+first {
+  key: "Form"
+  value {
+    terminals: "BANG_COLON"
+    terminals: "BANG_DOT"
+    terminals: "BANG_STAR"
+    terminals: "COLON"
+    terminals: "DOT"
+    terminals: "FLOAT"
+    terminals: "IDENT"
+    terminals: "INT"
+    terminals: "LANGLE"
+    terminals: "LBRACKET"
+    terminals: "LPAREN"
+    terminals: "SCALE"
+    terminals: "STAR"
+  }
+}
+first {
+  key: "FormList"
+  value {
+    terminals: "BANG_COLON"
+    terminals: "BANG_DOT"
+    terminals: "BANG_STAR"
+    terminals: "COLON"
+    terminals: "DOT"
+    terminals: "FLOAT"
+    terminals: "IDENT"
+    terminals: "INT"
+    terminals: "LANGLE"
+    terminals: "LBRACKET"
+    terminals: "LPAREN"
+    terminals: "SCALE"
+    terminals: "STAR"
+  }
+}
+first {
+  key: "LList"
+  value {
+    terminals: "LPAREN"
+  }
+}
+first {
+  key: "PList"
+  value {
+    terminals: "LBRACKET"
+  }
+}
+first {
+  key: "SList"
+  value {
+    terminals: "LANGLE"
+  }
+}
+first {
+  key: "VarRef"
+  value {
+    terminals: "BANG_COLON"
+    terminals: "BANG_DOT"
+    terminals: "BANG_STAR"
+    terminals: "COLON"
+    terminals: "DOT"
+    terminals: "STAR"
+  }
 }

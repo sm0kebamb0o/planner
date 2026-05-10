@@ -20,10 +20,10 @@ class Rule:
 
 @dataclass
 class Grammar:
-    terminals:     list[Terminal]
-    non_terminals: list[Neterminal]
-    rules:         list[Rule]
-    start:         Neterminal
+    terminals     : list[Terminal]
+    non_terminals : list[Neterminal]
+    rules         : list[Rule]
+    start         : Neterminal
 
     @classmethod
     def parse(

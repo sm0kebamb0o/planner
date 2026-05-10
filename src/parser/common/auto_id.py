@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from uuid import uuid4
 
 
@@ -5,9 +7,9 @@ Id = str
 
 
 class IdGenerator:
-    _instance: "IdGenerator | None" = None
+    _instance: IdGenerator | None = None
 
-    def __new__(cls) -> "IdGenerator":
+    def __new__(cls) -> IdGenerator:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance

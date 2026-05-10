@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.parser.grammar import EPSILON, NeterminalName
+from src.parser.grammar import EPSILON
 
 from .ast import FormNode, ProgramNode
 from .ast.assembler import TokItem, ASTItem, assemble_node
@@ -18,55 +18,6 @@ class PlannerReader:
         self._vertex_name: dict[Id, str] = {
             v.id: v.name for v in self.graph.vertices
         }
-        self._adj: dict[Id, list[Edge]] = self.graph.adjacency_by_id()
-        self._first: dict[str, frozenset[str]] = self._build_first_sets()
-        self._nullable: frozenset[str] = self._build_nullable()
-
-    def _build_nullable(self) -> frozenset[str]:
-        nullable: set[str] = set()
-        for vertex_id, edges in self._adj.items():
-            vname = self._vertex_name.get(vertex_id, "")
-            if not vname.endswith("_beg"):
-                continue
-            nt_name = vname[: -len("_beg")]
-            for edge in edges:
-                if (
-                    isinstance(edge.value, Terminal)
-                    and edge.value.value == "eps"
-                ):
-                    nullable.add(nt_name)
-                    break
-        return frozenset(nullable)
-
-    def _build_first_sets(self) -> dict[str, frozenset[str]]:
-        first: dict[str, frozenset[str]] = {}
-
-        def compute(beg_vertex_id: str, seen: frozenset[str]) -> frozenset[str]:
-            if beg_vertex_id in seen:
-                return frozenset()
-            seen = seen | {beg_vertex_id}
-            result: set[str] = set()
-
-            for edge in self._adj.get(beg_vertex_id, []):
-                if isinstance(edge.value, Terminal):
-                    if edge.value.value != "eps":
-                        result.add(edge.value.value)
-                elif (
-                    isinstance(edge.value, Bracket)
-                    and edge.value.type == Bracket.Type.OPEN
-                ):
-                    sub_first = compute(edge.vertex2.id, seen)
-                    result.update(sub_first)
-
-            return frozenset(result)
-
-        for vertex_id in self._adj:
-            vname = self._vertex_name.get(vertex_id, "")
-            if vname.endswith("_beg"):
-                nt_name = vname[: -len("_beg")]
-                first[nt_name] = compute(vertex_id, frozenset())
-
-        return first
 
     # ------------------------------------------------------------------
     # Public methods
@@ -196,10 +147,10 @@ class PlannerReader:
                         else nt_beg_name
                     )
 
-                    if token_type in self._first.get(nt_name, frozenset()):
+                    if token_type in self.graph.first.get(nt_name, frozenset()):
                         return edge
 
-                    if nt_name in self._nullable:
+                    if nt_name in self.graph.nullable:
                         nullable_edge = edge
 
                 elif edge_value.type == Bracket.Type.CLOSE:

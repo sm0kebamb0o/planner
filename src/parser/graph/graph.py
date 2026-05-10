@@ -50,12 +50,14 @@ class Edge(metaclass=AutoIdMeta):
 @dataclass
 class Graph:
     initial          : Vertex
-    _vertices        : dict[Id, Vertex] = field(default_factory=dict)
-    _edges           : dict[Id, Edge]   = field(default_factory=dict)
-    _vertex_to_edges : dict[Id, list[Edge]] = field(default_factory=dict)
-    final            : list[Vertex]      = field(default_factory=list)
-    terminals        : list[Terminal]    = field(default_factory=list)
-    brackets         : list[Bracket]     = field(default_factory=list)
+    _vertices        : dict[Id, Vertex]           = field(default_factory=dict)
+    _edges           : dict[Id, Edge]             = field(default_factory=dict)
+    _vertex_to_edges : dict[Id, list[Edge]]       = field(default_factory=dict)
+    final            : list[Vertex]               = field(default_factory=list)
+    terminals        : list[Terminal]             = field(default_factory=list)
+    brackets         : list[Bracket]              = field(default_factory=list)
+    nullable         : frozenset[str]             = field(default_factory=frozenset)
+    first            : dict[str, frozenset[str]]  = field(default_factory=dict)
 
     # ------------------------------------------------------------------
     # Public methods
@@ -82,12 +84,6 @@ class Graph:
         self._vertex_to_edges.setdefault(edge.vertex1.id, []).append(edge)
         return self
 
-    # def adjacency_by_name(self) -> dict[Id, list["Edge"]]:
-    #     result: dict[Id, list[Edge]] = defaultdict(list)
-    #     for edge in self.edges:
-    #         result[edge.vertex1.name].append(edge)
-    #     return dict(result)
-
     @property
     def start_vertex(self) -> Vertex:
         return self.initial
@@ -106,12 +102,6 @@ class Graph:
 
     def vertex_by_id(self, vertex_id: Id) -> "Vertex":
         return self._vertices[vertex_id]
-    
-    # def vertex_by_name(self, vertex_name: str) -> "Vertex":
-    #     for v in self._vertices.values():
-    #         if v.name == vertex_name:
-    #             return v
-    #     raise KeyError(f"Нет вершины {vertex_name!r} в графе")
 
     def is_final(self, vertex_id: Id) -> bool:
         return vertex_id in self.final_ids
@@ -154,17 +144,15 @@ class Graph:
 
         return groups
 
-    @classmethod
-    def vertex_name_beg(self, nt: str) -> str:
-        return f"{nt}_beg"
-
-    @classmethod
-    def vertex_name_end(self, nt: str) -> str:
-        return f"{nt}_end"
-
     @staticmethod
     def from_grammar(grammar: Grammar) -> "Graph":
         """Build a context-free L-graph from a CFG"""
+
+        def vertex_name_beg(nt: str) -> str:
+            return f"{nt}_beg"
+
+        def vertex_name_end(nt: str) -> str:
+            return f"{nt}_end"
 
         def vertex_name_mid(nt: str, rule_idx: int, pos: int) -> str:
             return f"{nt}_{rule_idx}_{pos}"
@@ -172,8 +160,8 @@ class Graph:
         used_vertices: dict[str, tuple[Vertex, Vertex]] = {}
         def get_beg_end_vertices(nonterminal: Neterminal) -> tuple[Vertex, Vertex]:
             if nonterminal.id not in used_vertices:
-                beg_vertex = Vertex(Graph.vertex_name_beg(nonterminal.value))
-                end_vertex = Vertex(Graph.vertex_name_end(nonterminal.value))
+                beg_vertex = Vertex(vertex_name_beg(nonterminal.value))
+                end_vertex = Vertex(vertex_name_end(nonterminal.value))
                 used_vertices[nonterminal.id] = (beg_vertex, end_vertex)
             return used_vertices[nonterminal.id]
 
@@ -219,7 +207,49 @@ class Graph:
         if any(isinstance(e.value, Terminal) and e.value == EPSILON for e in graph.edges):
             if EPSILON not in graph.terminals:
                 graph.terminals.append(EPSILON)
+        graph.nullable = graph._compute_nullable()
+        graph.first    = graph._compute_first()
         return graph
+
+    # ------------------------------------------------------------------
+    # Inner methods
+    # ------------------------------------------------------------------
+
+    def _compute_nullable(self) -> frozenset[str]:
+        nullable: set[str] = set()
+        for vertex_id, edges in self._vertex_to_edges.items():
+            v = self._vertices.get(vertex_id)
+            if v is None or not v.name.endswith("_beg"):
+                continue
+            nt_name = v.name.removesuffix("_beg")
+            for edge in edges:
+                if isinstance(edge.value, Terminal) and edge.value == EPSILON:
+                    nullable.add(nt_name)
+                    break
+        return frozenset(nullable)
+
+    def _compute_first(self) -> dict[str, frozenset[str]]:
+        first: dict[str, frozenset[str]] = {}
+
+        def compute(beg_vertex_id: Id, seen: frozenset[Id]) -> frozenset[str]:
+            if beg_vertex_id in seen:
+                return frozenset()
+            seen = seen | {beg_vertex_id}
+            result: set[str] = set()
+            for edge in self._vertex_to_edges.get(beg_vertex_id, []):
+                if isinstance(edge.value, Terminal):
+                    if edge.value != EPSILON:
+                        result.add(edge.value.value)
+                elif isinstance(edge.value, Bracket) and edge.value.type == Bracket.Type.OPEN:
+                    result.update(compute(edge.vertex2.id, seen))
+            return frozenset(result)
+
+        for vertex_id, v in self._vertices.items():
+            if v.name.endswith("_beg"):
+                nt_name = v.name.removesuffix("_beg")
+                first[nt_name] = compute(vertex_id, frozenset())
+
+        return first
 
     # ------------------------------------------------------------------
     # Serialization
@@ -256,6 +286,14 @@ class Graph:
                 pe.terminal_id = e.value.id
             elif isinstance(e.value, Bracket):
                 pe.bracket_id = e.value.id
+
+        for nt_name in self.nullable:
+            proto.nullable.append(nt_name)
+
+        for nt_name, terminals_set in self.first.items():
+            first_set = proto.first[nt_name]
+            for t in sorted(terminals_set):
+                first_set.terminals.append(t)
 
         Path(file_path).write_text(text_format.MessageToString(proto))
 
@@ -294,6 +332,9 @@ class Graph:
         g.terminals = list(id_to_terminal.values())
         g.brackets  = list(open_brackets.values()) + list(close_brackets.values())
         g.final     = [id_to_vertex[fid] for fid in proto.final if fid in id_to_vertex]
+
+        g.nullable = frozenset(proto.nullable)
+        g.first    = {nt: frozenset(fs.terminals) for nt, fs in proto.first.items()}
 
         for pe in proto.edges:
             which = pe.WhichOneof("value")

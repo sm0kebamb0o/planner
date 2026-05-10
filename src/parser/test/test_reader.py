@@ -25,7 +25,7 @@ from src.parser import (
     VarRefNode, VarMode, LListNode, CallNode,
 )
 from src.parser.graph import Graph
-from src.parser.planner_grammar import build_planner_grammar
+from src.parser.grammar.planner_grammar import PLANNER_GRAMMAR
 
 
 def _parse(source: str) -> ProgramNode:
@@ -263,8 +263,7 @@ class TestGrammarProtoRoundTrip(unittest.TestCase):
     """Граф грамматики плэннера корректно сериализуется в proto и восстанавливается из него."""
 
     def setUp(self):
-        grammar = build_planner_grammar()
-        self._original = Graph.from_grammar(grammar)
+        self._original = Graph.from_grammar(PLANNER_GRAMMAR)
 
     def _load_roundtrip(self) -> Graph:
         with tempfile.NamedTemporaryFile(suffix=".pbtxt", delete=False) as f:
@@ -288,7 +287,10 @@ class TestGrammarProtoRoundTrip(unittest.TestCase):
 
     def test_final_vertices_preserved(self):
         loaded = self._load_roundtrip()
-        self.assertEqual(self._original.final_names, loaded.final_names)
+        self.assertEqual(
+            {v.name for v in self._original.final},
+            {v.name for v in loaded.final},
+        )
 
     def test_terminals_preserved(self):
         loaded = self._load_roundtrip()
@@ -311,17 +313,11 @@ class TestGrammarProtoRoundTrip(unittest.TestCase):
     def test_loaded_graph_parses_correctly(self):
         """После загрузки из proto граф позволяет успешно разбирать программы."""
         loaded = self._load_roundtrip()
-        # Подменяем граф в ридере загруженным из proto и проверяем несколько форм
         reader = PlannerReader.__new__(PlannerReader)
         reader.graph = loaded
         reader._vertex_name = {v.id: v.name for v in loaded.vertices}
-        reader._adj = loaded.adjacency_by_id()
-        reader._first = reader._build_first_sets()
-        reader._nullable = reader._build_nullable()
-        reader._form_start_id = loaded.vertex_by_name("Form_beg").id
-        reader._form_end_id   = loaded.vertex_by_name("Form_end").id
-        reader._tokens  = []
-        reader._tok_pos = 0
+        reader._first = loaded.first
+        reader._nullable = loaded.nullable
 
         def parse(source: str) -> ProgramNode:
             groups = Lexer(source).tokenize()
