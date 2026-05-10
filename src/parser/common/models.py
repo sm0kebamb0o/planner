@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from .utils import AutoIdMeta
+from .auto_id import AutoIdMeta
 
 
 @dataclass

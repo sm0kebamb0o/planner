@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .models import Neterminal, Terminal
+from ..common import Neterminal, Terminal
 
 
 EPSILON = Terminal("eps", id="Terminal_eps")
@@ -9,15 +9,15 @@ EPSILON = Terminal("eps", id="Terminal_eps")
 @dataclass
 class Rule:
     lhs: Neterminal
-    rhs: list[Terminal | Neterminal]
+    rhs: list[list[Terminal | Neterminal]]
 
 
 @dataclass
 class Grammar:
-    terminals: list[Terminal]
+    terminals:     list[Terminal]
     non_terminals: list[Neterminal]
-    rules: list[Rule]
-    start: Neterminal
+    rules:         list[Rule]
+    start:         Neterminal
 
     @classmethod
     def parse(
@@ -42,7 +42,8 @@ class Grammar:
         def is_neterminal(sym: str) -> bool:
             return sym in _nonterminal_map
 
-        rules: list[Rule] = []
+        rules_map:   dict[str, Rule] = {}
+        rules_order: list[Rule]      = []
 
         for raw_line in text.splitlines():
             line = raw_line.strip()
@@ -66,20 +67,27 @@ class Grammar:
             if not start:
                 start = lhs
 
+            if lhs_str not in rules_map:
+                rule = Rule(lhs=lhs, rhs=[])
+                rules_map[lhs_str] = rule
+                rules_order.append(rule)
+
+            rule = rules_map[lhs_str]
+
             for alternative in rhs_part.split("|"):
                 tokens = alternative.split()
                 if not tokens or (len(tokens) == 1 and tokens[0] == EPSILON.value):
-                    rhs: list[Terminal | Neterminal] = [EPSILON]
+                    alt: list[Terminal | Neterminal] = [EPSILON]
                 else:
-                    rhs = []
+                    alt = []
                     for tok in tokens:
                         if is_terminal(tok):
-                            rhs.append(_terminal_map.get(tok, EPSILON))
+                            alt.append(_terminal_map.get(tok, EPSILON))
                         elif is_neterminal(tok):
-                            rhs.append(_nonterminal_map[tok])
+                            alt.append(_nonterminal_map[tok])
                         else:
                             raise ValueError(f"Symbol {tok!r} is neither a terminal nor a non-terminal")
-                rules.append(Rule(lhs=lhs, rhs=rhs))
+                rule.rhs.append(alt)
 
         if not start:
             raise ValueError("Start symbol is not provided")
@@ -92,6 +100,6 @@ class Grammar:
         return cls(
             terminals=terminals,
             non_terminals=non_terminals,
-            rules=rules,
+            rules=rules_order,
             start=start,
         )

@@ -39,7 +39,11 @@ def _bind(name: str, val: "Value", interp: "PlannerInterpreter") -> None:
 
 def _is_segmented(pat: FormNode) -> bool:
     """True если образец является сегментным (начинается с !)."""
-    return isinstance(pat, VarRefNode) and pat.segmented
+    if isinstance(pat, VarRefNode):
+        return pat.segmented
+    if isinstance(pat, CallNode):
+        return pat.segmented   # <g args> и <>
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -99,6 +103,10 @@ def match(pat: FormNode, expr: "Value",
         # Есть сегментные — используем алгоритм с backtracking
         return match_list(pat.elements, expr.elements, 0, 0, interp)
 
+    # --- [] или <> — пустые wildcards без аргументов (§5.3) ---
+    if isinstance(pat, CallNode) and not pat.args and isinstance(pat.head, IdentNode) and not pat.head.name:
+        return True
+
     # --- Обращение к сопоставителю [matcher ...] ---
     if isinstance(pat, CallNode) and isinstance(pat.head, IdentNode):
         matcher_name = pat.head.name
@@ -107,11 +115,6 @@ def match(pat: FormNode, expr: "Value",
         # Вычислить как обычное выражение и проверить равенство
         val = interp.eval_form(pat)
         return val == expr
-
-    # --- Пустой P-список [] — соответствует любому значению ---
-    if isinstance(pat, CallNode) and pat.segmented is False and not pat.args:
-        # [] с пустыми args — wildcard
-        return True
 
     # --- Fallback: вычислить образец и сравнить ---
     try:
@@ -165,6 +168,44 @@ def match_list(
         return False
 
 
+def _try_bind_segment(
+    seg_pat: FormNode,
+    seg_list: "PlannerList",
+    interp: "PlannerInterpreter",
+) -> bool:
+    """Попытаться связать seg_list с сегментным образцом.
+
+    Возвращает True при успехе (с возможным побочным эффектом на трейле).
+    Не выполняет откат при неудаче — это делает вызывающая сторона.
+    """
+    if isinstance(seg_pat, VarRefNode):
+        if seg_pat.mode == VarMode.ASSIGN:    # !*X — всегда связывает
+            _bind(seg_pat.name, seg_list, interp)
+            return True
+        if seg_pat.mode == VarMode.READ:      # !.X
+            if interp.env.has_value(seg_pat.name):
+                return interp.env.get_local(seg_pat.name) == seg_list
+            _bind(seg_pat.name, seg_list, interp)
+            return True
+        if seg_pat.mode == VarMode.CONST:     # !:C
+            if interp.env.has_constant(seg_pat.name):
+                return interp.env.get_constant(seg_pat.name) == seg_list
+            return False
+
+    if isinstance(seg_pat, CallNode) and seg_pat.segmented:
+        if not seg_pat.args:
+            # <> — сегментный wildcard без привязки; соответствует любому сегменту
+            return True
+        # <g args> — вызвать сопоставитель с сегментом как значением
+        if isinstance(seg_pat.head, IdentNode):
+            name = seg_pat.head.name
+            if name in interp._matchers:
+                return interp._matchers[name](seg_pat.args, seg_list, interp)
+        return False
+
+    return False
+
+
 def _match_segment(
     seg_pat: FormNode,
     pats: list[FormNode],
@@ -174,9 +215,6 @@ def _match_segment(
     interp: "PlannerInterpreter",
 ) -> bool:
     """Перебрать длины сегмента от 0 до максимума, ища успешное продолжение."""
-
-    assert isinstance(seg_pat, VarRefNode) and seg_pat.segmented
-
     max_remaining = len(items) - ii
     # Посчитать минимально необходимое число элементов для оставшихся несегментных
     min_needed = sum(1 for p in pats[pi + 1:] if not _is_segmented(p))
@@ -187,23 +225,9 @@ def _match_segment(
         segment = items[ii: ii + seg_len]
         seg_list = PlannerList(elements=list(segment), kind=BracketKind.ROUND)
 
-        # Попробовать связать сегмент
-        ok = False
-        if seg_pat.mode == VarMode.ASSIGN:    # !*X — всегда связывает
-            _bind(seg_pat.name, seg_list, interp)
-            ok = True
-        elif seg_pat.mode == VarMode.READ:    # !.X
-            if interp.env.has_value(seg_pat.name):
-                ok = (interp.env.get_local(seg_pat.name) == seg_list)
-            else:
-                _bind(seg_pat.name, seg_list, interp)
-                ok = True
-        elif seg_pat.mode == VarMode.CONST:   # !:C
-            if interp.env.has_constant(seg_pat.name):
-                ok = (interp.env.get_constant(seg_pat.name) == seg_list)
-
-        if ok and match_list(pats, items, pi + 1, ii + seg_len, interp):
-            return True
+        if _try_bind_segment(seg_pat, seg_list, interp):
+            if match_list(pats, items, pi + 1, ii + seg_len, interp):
+                return True
 
         interp._trail.undo_to(mark)
 
@@ -218,25 +242,36 @@ def _all_wildcards(
     interp: "PlannerInterpreter",
 ) -> bool:
     """Все оставшиеся образцы — свободные сегментные wildcards → bind пустые."""
-
+    empty = PlannerList(elements=[], kind=BracketKind.ROUND)
     for p in pats[pi:]:
         if not _is_segmented(p):
             return False
-        assert isinstance(p, VarRefNode)
-        empty = PlannerList(elements=[], kind=BracketKind.ROUND)
-        if p.mode == VarMode.ASSIGN:
-            _bind(p.name, empty, interp)
-        elif p.mode == VarMode.READ:
-            if interp.env.has_value(p.name):
-                if interp.env.get_local(p.name) != empty:
-                    return False
-            else:
+        if isinstance(p, VarRefNode):
+            if p.mode == VarMode.ASSIGN:
                 _bind(p.name, empty, interp)
-        elif p.mode == VarMode.CONST:
-            if not interp.env.has_constant(p.name):
-                return False
-            if interp.env.get_constant(p.name) != empty:
-                return False
+            elif p.mode == VarMode.READ:
+                if interp.env.has_value(p.name):
+                    if interp.env.get_local(p.name) != empty:
+                        return False
+                else:
+                    _bind(p.name, empty, interp)
+            elif p.mode == VarMode.CONST:
+                if not interp.env.has_constant(p.name):
+                    return False
+                if interp.env.get_constant(p.name) != empty:
+                    return False
+        elif isinstance(p, CallNode) and p.segmented:
+            if not p.args:
+                pass  # <> — wildcard, пустой сегмент всегда успешен
+            else:
+                # <g args> — вызвать сопоставитель с пустым списком
+                if isinstance(p.head, IdentNode) and p.head.name in interp._matchers:
+                    if not interp._matchers[p.head.name](p.args, empty, interp):
+                        return False
+                else:
+                    return False
+        else:
+            return False
     return True
 
 
@@ -270,10 +305,7 @@ def _make_matchers(interp) -> dict:
         if not isinstance(expr, PlannerList) or expr.kind != BracketKind.ROUND:
             return False
         if args:
-            length_val = interp.eval_form(args[0])
-            if not isinstance(length_val, (int, float)):
-                return False
-            return len(expr.elements) == int(length_val)
+            return match(args[0], len(expr.elements), interp)
         return True
 
     matchers["LIST"] = _list_matcher
@@ -282,8 +314,7 @@ def _make_matchers(interp) -> dict:
         if not isinstance(expr, PlannerList) or expr.kind != BracketKind.SQUARE:
             return False
         if args:
-            length_val = interp.eval_form(args[0])
-            return len(expr.elements) == int(length_val)
+            return match(args[0], len(expr.elements), interp)
         return True
 
     matchers["LISTP"] = _listp_matcher
@@ -292,8 +323,7 @@ def _make_matchers(interp) -> dict:
         if not isinstance(expr, PlannerList) or expr.kind != BracketKind.ANGLE:
             return False
         if args:
-            length_val = interp.eval_form(args[0])
-            return len(expr.elements) == int(length_val)
+            return match(args[0], len(expr.elements), interp)
         return True
 
     matchers["LISTS"] = _lists_matcher
@@ -302,11 +332,44 @@ def _make_matchers(interp) -> dict:
         if not isinstance(expr, PlannerList):
             return False
         if args:
-            length_val = interp.eval_form(args[0])
-            return len(expr.elements) == int(length_val)
+            return match(args[0], len(expr.elements), interp)
         return True
 
     matchers["LISTR"] = _listr_matcher
+
+    # --- VAR-сопоставители (§5.1) ---
+    # Переменная-ссылка в позиции значения — 1-элементный L-список с строкой-префиксом.
+    # Например, [QUOTE .X] → (".X"), [QUOTE !*Y] → ("!*Y").
+
+    def _var_ref_check(prefix: str):
+        def check(expr) -> bool:
+            return (
+                isinstance(expr, PlannerList) and
+                expr.kind == BracketKind.ROUND and
+                len(expr.elements) == 1 and
+                isinstance(expr.elements[0], str) and
+                expr.elements[0].startswith(prefix) and
+                len(expr.elements[0]) > len(prefix)
+            )
+        return check
+
+    _vdot  = _var_ref_check(".")
+    _vstar = _var_ref_check("*")
+    _vcol  = _var_ref_check(":")
+    _vsdot = _var_ref_check("!.")
+    _vsstr = _var_ref_check("!*")
+    _vscol = _var_ref_check("!:")
+
+    _type_matcher("VAR.",  _vdot)
+    _type_matcher("VAR*",  _vstar)
+    _type_matcher("VAR:",  _vcol)
+    _type_matcher("VAR!.", _vsdot)
+    _type_matcher("VAR!*", _vsstr)
+    _type_matcher("VAR!:", _vscol)
+    _type_matcher("VARP",  lambda e: _vdot(e) or _vstar(e) or _vcol(e))
+    _type_matcher("VARS",  lambda e: _vsdot(e) or _vsstr(e) or _vscol(e))
+    _type_matcher("VAR",   lambda e: _vdot(e) or _vstar(e) or _vcol(e) or
+                                      _vsdot(e) or _vsstr(e) or _vscol(e))
 
     # --- Числовые сопоставители ---
 

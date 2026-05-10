@@ -7,8 +7,8 @@ from enum import Enum, auto
 from google.protobuf import text_format
 from graphviz import Digraph
 
-from ..models import Terminal, Neterminal
-from ..utils import AutoIdMeta
+from ..common.models import Terminal, Neterminal
+from ..common.auto_id import AutoIdMeta
 from ..grammar import Grammar, EPSILON
 
 from .proto import graph_pb2
@@ -167,40 +167,45 @@ class Graph:
         initial_vertex, finish_vertex = get_beg_end_vertices(grammar.start)
         graph = Graph(initial=initial_vertex, final=[finish_vertex])
 
-        for rule_idx, rule in enumerate(grammar.rules):
+        alt_idx = 0
+        for rule in grammar.rules:
             lhs = rule.lhs
-            rhs = rule.rhs
-
             v_beg, v_end = get_beg_end_vertices(lhs)
 
-            n = len(rhs)
-            seq_vertices: list[Vertex] = [v_beg]
-            for j in range(1, n):
-                seq_vertices.append(Vertex(vertex_name_mid(lhs, rule_idx, j)))
-            seq_vertices.append(v_end)
+            for rhs in rule.rhs:
+                n = len(rhs)
+                seq_vertices: list[Vertex] = [v_beg]
+                for j in range(1, n):
+                    seq_vertices.append(Vertex(vertex_name_mid(lhs, alt_idx, j)))
+                seq_vertices.append(v_end)
 
-            for i, sym in enumerate(rhs):
-                v_left = seq_vertices[i]
-                v_right = seq_vertices[i + 1]
+                for i, sym in enumerate(rhs):
+                    v_left = seq_vertices[i]
+                    v_right = seq_vertices[i + 1]
 
-                graph.add_vertex(v_left)
-                graph.add_vertex(v_right)
+                    graph.add_vertex(v_left)
+                    graph.add_vertex(v_right)
 
-                if sym in grammar.non_terminals:
-                    brackets_pair = BracketsPair()
-                    open_bracket = Bracket(type=Bracket.Type.OPEN, id=brackets_pair.id)
-                    close_bracket = Bracket(type=Bracket.Type.CLOSE, id=brackets_pair.id)
-                    v_sym_beg, v_sym_end = get_beg_end_vertices(sym)
-                    graph.add_edge(Edge(vertex1=v_left, vertex2=v_sym_beg, value=open_bracket))
-                    graph.add_edge(Edge(vertex1=v_sym_end, vertex2=v_right, value=close_bracket))
-                    graph.brackets.append(open_bracket)
-                    graph.brackets.append(close_bracket)
-                elif sym in grammar.terminals or sym == EPSILON:
-                    graph.add_edge(Edge(vertex1=v_left, vertex2=v_right, value=sym))
-                else:
-                    raise ValueError(f"Symbol {sym!r} is not a terminal or non-terminal")
+                    if sym in grammar.non_terminals:
+                        brackets_pair = BracketsPair()
+                        open_bracket = Bracket(type=Bracket.Type.OPEN, id=brackets_pair.id)
+                        close_bracket = Bracket(type=Bracket.Type.CLOSE, id=brackets_pair.id)
+                        v_sym_beg, v_sym_end = get_beg_end_vertices(sym)
+                        graph.add_edge(Edge(vertex1=v_left, vertex2=v_sym_beg, value=open_bracket))
+                        graph.add_edge(Edge(vertex1=v_sym_end, vertex2=v_right, value=close_bracket))
+                        graph.brackets.append(open_bracket)
+                        graph.brackets.append(close_bracket)
+                    elif sym in grammar.terminals or sym == EPSILON:
+                        graph.add_edge(Edge(vertex1=v_left, vertex2=v_right, value=sym))
+                    else:
+                        raise ValueError(f"Symbol {sym!r} is not a terminal or non-terminal")
 
-        graph.terminals = grammar.terminals
+                alt_idx += 1
+
+        graph.terminals = list(grammar.terminals)
+        if any(isinstance(e.value, Terminal) and e.value == EPSILON for e in graph.edges):
+            if EPSILON not in graph.terminals:
+                graph.terminals.append(EPSILON)
         return graph
 
     # ------------------------------------------------------------------
@@ -248,9 +253,10 @@ class Graph:
         with open(file_path, "r") as f:
             text_format.Parse(f.read(), proto)
 
-        id_to_vertex:   dict[str, Vertex]   = {}
-        id_to_terminal: dict[str, Terminal] = {}
-        id_to_bracket:  dict[str, Bracket]  = {}
+        id_to_vertex:    dict[str, Vertex]   = {}
+        id_to_terminal:  dict[str, Terminal] = {}
+        open_brackets:   dict[str, Bracket]  = {}
+        close_brackets:  dict[str, Bracket]  = {}
 
         for pv in proto.vertices:
             v = Vertex(pv.name, id=pv.id)
@@ -262,7 +268,10 @@ class Graph:
 
         for pb in proto.brackets:
             b = Bracket(type=Bracket.Type[pb.type], id=pb.id)
-            id_to_bracket[b.id] = b
+            if b.type == Bracket.Type.OPEN:
+                open_brackets[b.id] = b
+            else:
+                close_brackets[b.id] = b
 
         initial_vertex = id_to_vertex[proto.initial]
         g = cls(initial=initial_vertex)
@@ -271,15 +280,18 @@ class Graph:
             g._vertices[v.id] = v
 
         g.terminals = list(id_to_terminal.values())
-        g.brackets  = list(id_to_bracket.values())
+        g.brackets  = list(open_brackets.values()) + list(close_brackets.values())
         g.final     = [id_to_vertex[fid] for fid in proto.final if fid in id_to_vertex]
 
         for pe in proto.edges:
             which = pe.WhichOneof("value")
-            value: Terminal | Bracket = (
-                id_to_terminal[pe.terminal_id] if which == "terminal_id"
-                else id_to_bracket[pe.bracket_id]
-            )
+            if which == "terminal_id":
+                value: Terminal | Bracket = id_to_terminal[pe.terminal_id]
+            else:
+                # Open brackets lead to *_beg vertices; all others are close brackets
+                dest_name = id_to_vertex[pe.vertex2_id].name
+                bracket_pool = open_brackets if dest_name.endswith("_beg") else close_brackets
+                value = bracket_pool[pe.bracket_id]
             e = Edge(
                 vertex1=id_to_vertex[pe.vertex1_id],
                 vertex2=id_to_vertex[pe.vertex2_id],

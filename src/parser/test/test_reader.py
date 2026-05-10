@@ -10,6 +10,7 @@
 
 import sys
 import os
+import tempfile
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 if _ROOT not in sys.path:
@@ -23,6 +24,8 @@ from src.parser import (
     ProgramNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )
+from src.parser.graph import Graph
+from src.parser.planner_grammar import build_planner_grammar
 
 
 def _parse(source: str) -> ProgramNode:
@@ -165,13 +168,77 @@ class TestProgramParsing(unittest.TestCase):
         self.assertIsInstance(prog.forms[-1], CallNode)
 
 
+class TestEmptyPList(unittest.TestCase):
+    """[] — пустой P-список, wildcard для одного значения (§5.3)."""
+
+    def test_empty_plist_parses(self):
+        node = _form("[]")
+        self.assertIsInstance(node, CallNode)
+        self.assertFalse(node.segmented)
+        self.assertEqual(node.args, [])
+
+    def test_empty_plist_head_is_empty_ident(self):
+        node = _form("[]")
+        self.assertIsInstance(node.head, IdentNode)
+        self.assertEqual(node.head.name, "")
+
+    def test_empty_plist_inside_llist(self):
+        prog = _parse("(A [] B)")
+        elems = prog.forms[0].elements
+        self.assertEqual(len(elems), 3)
+        self.assertIsInstance(elems[1], CallNode)
+        self.assertFalse(elems[1].segmented)
+        self.assertEqual(elems[1].args, [])
+
+    def test_nonempty_plist_unchanged(self):
+        node = _form("[FUNC A B]")
+        self.assertIsInstance(node, CallNode)
+        self.assertFalse(node.segmented)
+        self.assertIsInstance(node.head, IdentNode)
+        self.assertEqual(node.head.name, "FUNC")
+        self.assertEqual(len(node.args), 2)
+
+
+class TestEmptySList(unittest.TestCase):
+    """<> — пустой сегментный wildcard."""
+
+    def test_empty_slist_parses(self):
+        node = _form("<>")
+        self.assertIsInstance(node, CallNode)
+        self.assertTrue(node.segmented)
+        self.assertEqual(node.args, [])
+
+    def test_empty_slist_head_is_empty_ident(self):
+        node = _form("<>")
+        self.assertIsInstance(node.head, IdentNode)
+        self.assertEqual(node.head.name, "")
+
+    def test_empty_slist_inside_llist(self):
+        prog = _parse("(A <> B)")
+        elems = prog.forms[0].elements
+        self.assertEqual(len(elems), 3)
+        self.assertIsInstance(elems[1], CallNode)
+        self.assertTrue(elems[1].segmented)
+        self.assertEqual(elems[1].args, [])
+
+    def test_nonempty_slist_unchanged(self):
+        node = _form("<FUNC A B>")
+        self.assertIsInstance(node, CallNode)
+        self.assertTrue(node.segmented)
+        self.assertIsInstance(node.head, IdentNode)
+        self.assertEqual(node.head.name, "FUNC")
+        self.assertEqual(len(node.args), 2)
+
+
 class TestParseErrors(unittest.TestCase):
     """Ошибки синтаксического анализа."""
 
     def test_empty_brackets(self):
-        # [] — пустой P-список без головы, должен быть ошибкой
-        with self.assertRaises(ParseError):
-            _parse("[]")
+        # [] — теперь парсится как wildcard (§5.3)
+        node = _form("[]")
+        self.assertIsInstance(node, CallNode)
+        self.assertFalse(node.segmented)
+        self.assertEqual(node.args, [])
 
     def test_unclosed_bracket(self):
         # незакрытая скобка приводит к ошибке в лексере или парсере
@@ -190,6 +257,81 @@ class TestTestProgram(unittest.TestCase):
             source = f.read()
         prog = _parse(source)
         self.assertGreater(len(prog.forms), 0)
+
+
+class TestGrammarProtoRoundTrip(unittest.TestCase):
+    """Граф грамматики плэннера корректно сериализуется в proto и восстанавливается из него."""
+
+    def setUp(self):
+        grammar = build_planner_grammar()
+        self._original = Graph.from_grammar(grammar)
+
+    def _load_roundtrip(self) -> Graph:
+        with tempfile.NamedTemporaryFile(suffix=".pbtxt", delete=False) as f:
+            path = f.name
+        try:
+            self._original.dump(path)
+            return Graph.load(path)
+        finally:
+            os.unlink(path)
+
+    def test_vertices_preserved(self):
+        loaded = self._load_roundtrip()
+        self.assertEqual(
+            {v.name for v in self._original.vertices},
+            {v.name for v in loaded.vertices},
+        )
+
+    def test_initial_vertex_preserved(self):
+        loaded = self._load_roundtrip()
+        self.assertEqual(self._original.initial.name, loaded.initial.name)
+
+    def test_final_vertices_preserved(self):
+        loaded = self._load_roundtrip()
+        self.assertEqual(self._original.final_names, loaded.final_names)
+
+    def test_terminals_preserved(self):
+        loaded = self._load_roundtrip()
+        self.assertEqual(
+            {t.value for t in self._original.terminals},
+            {t.value for t in loaded.terminals},
+        )
+
+    def test_edge_count_preserved(self):
+        loaded = self._load_roundtrip()
+        self.assertEqual(len(self._original.edges), len(loaded.edges))
+
+    def test_bracket_types_preserved(self):
+        from src.parser.graph import Bracket
+        loaded = self._load_roundtrip()
+        orig_types = sorted(b.type.name for b in self._original.brackets)
+        load_types = sorted(b.type.name for b in loaded.brackets)
+        self.assertEqual(orig_types, load_types)
+
+    def test_loaded_graph_parses_correctly(self):
+        """После загрузки из proto граф позволяет успешно разбирать программы."""
+        loaded = self._load_roundtrip()
+        # Подменяем граф в ридере загруженным из proto и проверяем несколько форм
+        reader = PlannerReader.__new__(PlannerReader)
+        reader.graph = loaded
+        reader._vertex_name = {v.id: v.name for v in loaded.vertices}
+        reader._adj = loaded.adjacency_by_id()
+        reader._first = reader._build_first_sets()
+        reader._nullable = reader._build_nullable()
+        reader._form_start_id = loaded.vertex_by_name("Form_beg").id
+        reader._form_end_id   = loaded.vertex_by_name("Form_end").id
+        reader._tokens  = []
+        reader._tok_pos = 0
+
+        def parse(source: str) -> ProgramNode:
+            groups = Lexer(source).tokenize()
+            return reader.read(groups)
+
+        self.assertIsInstance(parse("ABC").forms[0], IdentNode)
+        self.assertIsInstance(parse("42").forms[0], IntNode)
+        self.assertIsInstance(parse("(A B)").forms[0], LListNode)
+        self.assertIsInstance(parse("[A B]").forms[0], CallNode)
+        self.assertIsInstance(parse(".x").forms[0], VarRefNode)
 
 
 if __name__ == "__main__":

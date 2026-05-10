@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Union
 
 from .ast_nodes import (
     FormNode, ProgramNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )
-from .graph import Graph, Edge, Bracket
+from .grammar import NeterminalName, TerminalName
+from .graph import Graph, Edge, Bracket, PLANNER_GRAPH
 from src.lexer import Token, TT
-from .models import Terminal
-from .planner_grammar import build_planner_grammar
+from .common.models import Terminal
 
 
 # Префикс-токен → (VarMode, segmented)
@@ -35,13 +34,12 @@ class TokItem:
     text: str
 
 
-ASTItem = Union[TokItem, "FormNode", list]
+ASTItem = TokItem | FormNode | list
 
 
 class PlannerReader:
     def __init__(self) -> None:
-        grammar = build_planner_grammar()
-        self.graph: Graph = Graph.from_grammar(grammar)
+        self.graph: Graph = PLANNER_GRAPH
 
         self._vertex_name: dict[str, str] = {
             v.id: v.name for v in self.graph.vertices
@@ -189,7 +187,7 @@ class PlannerReader:
                     raise ValueError(f"Неизвестный тип скобки: {ev.type!r}")
 
         for item in ast_stack[0]:
-            # А почему я тут смотрю только на первый фрейм?
+            # TODO: почему я тут смотрю только на первый фрейм?
             if isinstance(item, FormNode):
                 return item
         raise ParseError(f"Form: не удалось извлечь узел из фрейма {ast_stack[0]!r}")
@@ -204,7 +202,7 @@ class PlannerReader:
         1. Терминальное ребро с пометкой == tt
         2. Открывающая скобка к NT_beg, если tt \in FIRST(NT)
         3. Закрывающая скобка, если b_stack[-1][0] == edge.value.id
-        4. eps-ребро (запасной вариант; покрывает пустые FormList/ArgList)
+        4. eps-ребро (запасной вариант; покрывает пустой FormList)
         """
         edges = self._adj.get(vertex_id, [])
         eps_edge:      Edge | None = None
@@ -248,21 +246,21 @@ class PlannerReader:
         nt_name: str,
         items: list[ASTItem],
     ) -> ASTItem | None:
-        if nt_name == "Atom":
+        if nt_name == NeterminalName.ATOM:
             assert len(items) == 1 and isinstance(items[0], TokItem)
             tok = items[0]
-            if tok.type == TT.IDENT:
+            if tok.type == TerminalName.IDENT:
                 return IdentNode(name=tok.text)
-            if tok.type == TT.INT:
+            if tok.type == TerminalName.INT:
                 return IntNode(value=int(tok.text))
-            if tok.type == TT.FLOAT:
+            if tok.type == TerminalName.FLOAT:
                 return FloatNode(value=float(tok.text))
-            if tok.type == TT.SCALE:
+            if tok.type == TerminalName.SCALE:
                 octal = tok.text[1:]
                 return ScaleNode(bits=int(octal, 8), source=octal)
             raise ParseError(f"Atom: неизвестный тип токена {tok.type!r}")
 
-        if nt_name == "VarRef":
+        if nt_name == NeterminalName.VAR_REF:
             assert len(items) == 2 and all(isinstance(x, TokItem) for x in items)
             prefix_tok = items[0]
             name_tok   = items[1]
@@ -271,11 +269,11 @@ class PlannerReader:
             mode, segmented = _PREFIX_MAP[prefix_tok.type]
             return VarRefNode(mode=mode, name=name_tok.text, segmented=segmented)
 
-        if nt_name == "Form":
+        if nt_name == NeterminalName.FORM:
             assert len(items) == 1 and isinstance(items[0], FormNode)
             return items[0]
 
-        if nt_name in ("FormList", "ArgList"):
+        if nt_name == NeterminalName.FORM_LIST:
             result: list[FormNode] = []
             for item in items:
                 if isinstance(item, FormNode):
@@ -284,7 +282,7 @@ class PlannerReader:
                     result.extend(item)
             return result
 
-        if nt_name == "LList":
+        if nt_name == NeterminalName.L_LIST:
             elements: list[FormNode] = []
             for item in items:
                 if isinstance(item, list):
@@ -292,21 +290,25 @@ class PlannerReader:
                     break
             return LListNode(elements=elements)
 
-        if nt_name in ("PList", "SList"):
-            segmented = (nt_name == "SList")
-            head_node = next((x for x in items if isinstance(x, FormNode)), None)
-            args_list = next((x for x in items if isinstance(x, list)), [])
-            if head_node is None:
-                raise ParseError(
-                    f"{nt_name}: отсутствует голова вызова в фрейме {items!r}"
-                )
-            return CallNode(
-                head=head_node,
-                args=args_list,
-                segmented=segmented,
-            )
+        if nt_name == NeterminalName.P_LIST:
+            pb = next((x for x in items if isinstance(x, list)), [])
+            if not pb:
+                return CallNode(head=IdentNode(""), args=[], segmented=False)
+            head_node = pb[0]
+            if not isinstance(head_node, FormNode):
+                raise ParseError(f"PList: недопустимая голова {head_node!r}")
+            return CallNode(head=head_node, args=list(pb[1:]), segmented=False)
 
-        if nt_name == "Program":
+        if nt_name == NeterminalName.S_LIST:
+            sb = next((x for x in items if isinstance(x, list)), [])
+            if not sb:
+                return CallNode(head=IdentNode(""), args=[], segmented=True)
+            head_node = sb[0]
+            if not isinstance(head_node, FormNode):
+                raise ParseError(f"SList: недопустимая голова {head_node!r}")
+            return CallNode(head=head_node, args=list(sb[1:]), segmented=True)
+
+        if nt_name == NeterminalName.PROGRAM:
             return None
 
         raise ParseError(f"_assemble_node: неизвестный нетерминал {nt_name!r}")

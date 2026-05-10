@@ -124,8 +124,11 @@ class PlannerInterpreter:
                 result.extend(self._segment(raw))
 
             elif isinstance(elem, CallNode) and elem.segmented:
-                raw = self._eval_call(elem.head, elem.args)
-                result.extend(self._segment(raw))
+                if not elem.args and isinstance(elem.head, IdentNode) and not elem.head.name:
+                    pass  # <> — пустой wildcard, не добавляет элементов
+                else:
+                    raw = self._eval_call(elem.head, elem.args)
+                    result.extend(self._segment(raw))
 
             else:
                 result.append(self.eval_form(elem))
