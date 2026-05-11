@@ -1,6 +1,6 @@
-from src.interpreter.models.values import NIL
+from src.interpreter.functions.backtracking.utils import _tracked_gen
 from src.interpreter.models.signals import PlannerFailure, PlannerRuntimeError
-from .utils import _tracked_gen
+from src.interpreter.models.values import NIL
 
 
 def alt(raw_args: list, interp):

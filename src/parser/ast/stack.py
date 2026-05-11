@@ -3,14 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Union
 
-from ..common.models import Neterminal
-from ..errors import ParseError
-from ..grammar import NeterminalName, TerminalName
-from .nodes import (
+from src.lexer import TT
+from src.parser.ast.nodes import (
     FormNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )
-from src.lexer import TT
+from src.parser.common.models import Neterminal
+from src.parser.errors import ParseError
+from src.parser.grammar import NeterminalName, TerminalName
 
 
 # Префикс-токен → (VarMode, segmented)

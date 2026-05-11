@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from .auto_id import AutoIdMeta, Id
+from src.parser.common.auto_id import AutoIdMeta, Id
 
 
 @dataclass

@@ -1,7 +1,7 @@
-from src.interpreter.models.values import Value
+from src.interpreter.functions.backtracking.utils import _close_forks_since
 from src.interpreter.models.signals import PlannerFailure, PlannerRuntimeError
+from src.interpreter.models.values import Value
 from src.parser.ast.nodes import IdentNode
-from .utils import _close_forks_since
 
 
 def _parse_label(raw_args: list):

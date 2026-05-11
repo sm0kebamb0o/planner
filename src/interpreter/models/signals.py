@@ -1,6 +1,6 @@
 import enum
 
-from .values import Value
+from src.interpreter.models.values import Value
 
 
 class _ProgStepStatus(enum.Enum):

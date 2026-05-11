@@ -1,15 +1,14 @@
 from __future__ import annotations
 from collections import namedtuple
 
-from src.parser.common.auto_id import Id
-from src.parser.grammar import EPSILON
-
-from .ast import FormNode, ProgramNode
-from .ast.stack import TokItem, ASTStack
-from .errors import ParseError
-from .graph import Graph, Edge, Bracket, PLANNER_GRAPH, Vertex
 from src.lexer import TT, Token
-from .common.models import Terminal, Neterminal
+from src.parser.ast import FormNode, ProgramNode
+from src.parser.ast.stack import TokItem, ASTStack
+from src.parser.common.auto_id import Id
+from src.parser.common.models import Terminal, Neterminal
+from src.parser.errors import ParseError
+from src.parser.grammar import EPSILON
+from src.parser.graph import Graph, Edge, Bracket, PLANNER_GRAPH, Vertex
 
 
 class PlannerParser:

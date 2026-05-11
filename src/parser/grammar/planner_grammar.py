@@ -2,9 +2,8 @@ from enum import StrEnum
 from pathlib import Path
 
 from src.lexer import TT
-from ..common.models import Terminal, Neterminal
-
-from .grammar import Grammar, Rule, EPSILON
+from src.parser.common.models import Terminal, Neterminal
+from src.parser.grammar.grammar import Grammar, Rule, EPSILON
 
 
 TerminalName = TT

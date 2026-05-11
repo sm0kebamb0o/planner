@@ -5,8 +5,8 @@ from pathlib import Path
 
 from google.protobuf import text_format
 
-from ..common import Neterminal, Terminal
-from .proto import grammar_pb2
+from src.parser.common import Neterminal, Terminal
+from src.parser.grammar.proto import grammar_pb2
 
 
 EPSILON = Terminal("eps", id="Terminal_eps")

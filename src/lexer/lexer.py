@@ -1,7 +1,7 @@
 import re
 from collections.abc import Generator
 
-from .models import (
+from src.lexer.models import (
     TT,
     Token,
     OPEN_TO_CLOSE,

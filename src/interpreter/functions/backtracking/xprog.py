@@ -1,8 +1,8 @@
-from src.interpreter.models.values import NIL, Value
+from src.interpreter.functions.backtracking.perm_strg_temp import cleanup_perm, cleanup_strg, cleanup_temp
+from src.interpreter.functions.backtracking.utils import _close_forks_since
 from src.interpreter.models.signals import PlannerRuntimeError, _GoSignal, _ReturnSignal
-from src.parser.ast.nodes import LListNode, IdentNode
-from .utils import _close_forks_since
-from .perm_strg_temp import cleanup_perm, cleanup_strg, cleanup_temp
+from src.interpreter.models.values import NIL, Value
+from src.parser.ast.nodes import IdentNode, LListNode
 
 
 def _make_xprog(cleanup_fn):

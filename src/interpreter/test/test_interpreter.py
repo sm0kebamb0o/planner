@@ -8,25 +8,19 @@
     python src/interpreter/test/test_interpreter.py
 """
 
-import sys
-import os
 import io
-
-_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
-
+import sys
 import unittest
 
-from src.lexer import Lexer
-from src.parser import PlannerReader
 from src.interpreter import PlannerInterpreter, PlannerRuntimeError, PlannerList
+from src.lexer import Lexer
+from src.parser import PlannerParser
 
 
 def _run(source: str) -> str:
     """Выполнить программу и вернуть захваченный stdout."""
     groups = Lexer(source).tokenize()
-    prog   = PlannerReader().read(groups)
+    prog   = PlannerParser().parse(groups)
     buf    = io.StringIO()
     old    = sys.stdout
     sys.stdout = buf

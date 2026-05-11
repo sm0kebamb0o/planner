@@ -1,6 +1,6 @@
-from .subr import register_subrs
-from .fsubr import register_fsubrs
-from .backtracking import register_bt
+from src.interpreter.functions.backtracking import register_bt
+from src.interpreter.functions.fsubr import register_fsubrs
+from src.interpreter.functions.subr import register_subrs
 
 
 def register_all(interp) -> None:

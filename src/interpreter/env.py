@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
-from .models.values import Value
-from .models.signals import PlannerRuntimeError
+from src.interpreter.models.signals import PlannerRuntimeError
+from src.interpreter.models.values import Value
 
 
 @dataclass

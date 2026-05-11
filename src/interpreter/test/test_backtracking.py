@@ -5,21 +5,14 @@
     python -m pytest src/interpreter/test/test_backtracking.py -v
 """
 
-import sys
-import os
 import io
+import sys
 import unittest
 
-_ROOT = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
-
-from src.lexer import Lexer
-from src.parser import PlannerReader
 from src.interpreter import PlannerInterpreter, PlannerList, BracketKind
 from src.interpreter.interpreter import NIL, T
+from src.lexer import Lexer
+from src.parser import PlannerParser
 
 
 def _make_interp():
@@ -29,7 +22,7 @@ def _make_interp():
 def _run_source(source: str, interp=None):
     """Выполнить источник и вернуть (stdout_lines, last_value)."""
     groups = Lexer(source).tokenize()
-    prog   = PlannerReader().read(groups)
+    prog   = PlannerParser().parse(groups)
     buf    = io.StringIO()
     old    = sys.stdout
     sys.stdout = buf
@@ -455,9 +448,9 @@ class TestSUM(unittest.TestCase):
 """
         result = _eval_last(src)
         # Допустимые ответы: (3 2) или (2 2 1) и т.п. — сумма должна быть 5
-        from src.lexer import Lexer
-        from src.parser import PlannerReader
         from src.interpreter import PlannerInterpreter
+        from src.lexer import Lexer
+        from src.parser import PlannerParser
         groups = Lexer(result.strip("()").replace(" ", " ")).tokenize()
         # Просто проверим что не пустой список и не =НЕУСПЕХ=
         self.assertNotIn("НЕУСПЕХ", result)

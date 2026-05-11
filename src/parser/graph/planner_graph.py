@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from .graph import Graph
-from ..grammar import PLANNER_GRAMMAR, Grammar
+from src.parser.grammar import PLANNER_GRAMMAR, Grammar
+from src.parser.graph.graph import Graph
 
 
 class PlannerGraphLoader:

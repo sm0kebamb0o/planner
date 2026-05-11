@@ -1,7 +1,7 @@
-from src.interpreter.models.values import NIL, T, PlannerList, BracketKind, Value
+from src.interpreter.functions.backtracking.utils import _close_forks_since
 from src.interpreter.models.signals import PlannerFailure, PlannerRuntimeError
-from src.parser.ast.nodes import LListNode, IdentNode
-from .utils import _close_forks_since
+from src.interpreter.models.values import NIL, T, PlannerList, BracketKind, Value
+from src.parser.ast.nodes import IdentNode, LListNode
 
 _ALL = object()
 

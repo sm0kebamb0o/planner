@@ -8,11 +8,10 @@ from pathlib import Path
 from google.protobuf import text_format
 from graphviz import Digraph
 
-from ..common.models import Terminal, Neterminal
-from ..common.auto_id import AutoIdMeta, Id
-from ..grammar import Grammar, EPSILON
-
-from .proto import graph_pb2
+from src.parser.common.auto_id import AutoIdMeta, Id
+from src.parser.common.models import Terminal, Neterminal
+from src.parser.grammar import Grammar, EPSILON
+from src.parser.graph.proto import graph_pb2
 
 
 @dataclass
