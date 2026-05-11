@@ -8,7 +8,7 @@ import tkinter as tk
 from tkinter import filedialog, font, messagebox
 
 from src.lexer import Lexer, LexerError
-from src.parser.reader import PlannerReader, ParseError
+from src.parser.parser import PlannerParser, ParseError
 from src.interpreter import PlannerInterpreter, PlannerRuntimeError
 
 
@@ -304,8 +304,8 @@ class PlannerIDE(tk.Tk):
         error_msg: str | None = None
         try:
             token_groups = Lexer(source).tokenize()
-            reader = PlannerReader()
-            program = reader.read(token_groups)
+            parser = PlannerParser()
+            program = parser.parse(token_groups)
             interpreter = PlannerInterpreter()
             interpreter.run(program)
         except LexerError as e:

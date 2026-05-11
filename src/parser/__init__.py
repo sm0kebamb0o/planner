@@ -1,13 +1,12 @@
-from .reader import PlannerReader
+from .parser import PlannerParser
 from .errors import ParseError
 from .ast.nodes import (
     ProgramNode, IdentNode, IntNode, FloatNode, ScaleNode,
-    VarRefNode, LListNode, CallNode,
+    VarRefNode, LListNode, CallNode, VarMode
 )
-from .ast.nodes import VarMode
 
 __all__ = [
-    "PlannerReader", "ParseError",
+    "PlannerParser", "ParseError",
     "ProgramNode", "IdentNode", "IntNode", "FloatNode", "ScaleNode",
     "VarRefNode", "VarMode", "LListNode", "CallNode",
 ]

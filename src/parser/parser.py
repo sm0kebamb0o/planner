@@ -12,7 +12,7 @@ from src.lexer import TT, Token
 from .common.models import Terminal, Neterminal
 
 
-class PlannerReader:
+class PlannerParser:
     def __init__(self) -> None:
         self.graph: Graph = PLANNER_GRAPH
 
@@ -20,7 +20,7 @@ class PlannerReader:
     # Public methods
     # ------------------------------------------------------------------
 
-    def read(self, token_groups: list[list[Token]]) -> ProgramNode:
+    def parse(self, token_groups: list[list[Token]]) -> ProgramNode:
         forms: list[FormNode] = []
         for group in token_groups:
             form = self._parse_form(group)

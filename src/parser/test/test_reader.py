@@ -1,5 +1,5 @@
 """
-Тесты синтаксического анализатора языка Плэннер (PlannerReader).
+Тесты синтаксического анализатора языка Плэннер (PlannerParser).
 
 Запуск:
     cd /Users/mt1mur/Documents/CMC/planner
@@ -20,7 +20,7 @@ import unittest
 
 from src.lexer import Lexer
 from src.parser import (
-    PlannerReader, ParseError,
+    PlannerParser, ParseError,
     ProgramNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )
@@ -31,7 +31,7 @@ from src.parser.grammar.planner_grammar import PLANNER_GRAMMAR
 def _parse(source: str) -> ProgramNode:
     """Вспомогательная функция: токенизировать и разобрать строку."""
     groups = Lexer(source).tokenize()
-    return PlannerReader().read(groups)
+    return PlannerParser().parse(groups)
 
 
 def _form(source: str):
@@ -313,14 +313,14 @@ class TestGrammarProtoRoundTrip(unittest.TestCase):
     def test_loaded_graph_parses_correctly(self):
         """После загрузки из proto граф позволяет успешно разбирать программы."""
         loaded = self._load_roundtrip()
-        reader = PlannerReader.__new__(PlannerReader)
+        reader = PlannerParser.__new__(PlannerParser)
         reader.graph = loaded
         reader._first = loaded.first
         reader._nullable = loaded.nullable
 
         def parse(source: str) -> ProgramNode:
             groups = Lexer(source).tokenize()
-            return reader.read(groups)
+            return reader.parse(groups)
 
         self.assertIsInstance(parse("ABC").forms[0], IdentNode)
         self.assertIsInstance(parse("42").forms[0], IntNode)
