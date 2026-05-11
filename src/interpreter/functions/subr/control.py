@@ -1,5 +1,5 @@
-from src.interpreter.models.values import Value, NIL
-from src.interpreter.models.signals import PlannerRuntimeError, _GoSignal, _ReturnSignal
+from src.interpreter.values import Value, NIL
+from src.interpreter.signals import PlannerRuntimeError, GoSignal, ReturnSignal
 
 
 def go(args: list, interp) -> Value:
@@ -7,17 +7,17 @@ def go(args: list, interp) -> Value:
     label = args[0]
     if not isinstance(label, str):
         raise PlannerRuntimeError("GO: аргумент должен быть идентификатором")
-    raise _GoSignal(label)
+    raise GoSignal(label)
 
 
 def return_(args: list, interp) -> Value:
     interp._check_arity("RETURN", args, 1)
-    raise _ReturnSignal(args[0])
+    raise ReturnSignal(args[0])
 
 
 def exit_(args: list, interp) -> Value:
     val = args[0] if args else NIL
-    raise _ReturnSignal(val)
+    raise ReturnSignal(val)
 
 
 def register(interp) -> None:

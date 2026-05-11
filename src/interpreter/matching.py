@@ -18,8 +18,8 @@ from src.parser.ast.nodes import (
     VarRefNode, VarMode, LListNode, CallNode,
 )
 from src.interpreter.trail import _UNBOUND
-from src.interpreter.models.values import NIL, T, BracketKind, PlannerList, ScaleValue, _is_true
-from src.interpreter.models.signals import PlannerRuntimeError
+from src.interpreter.values import NIL, T, BracketKind, PlannerList, ScaleValue, _is_true
+from src.interpreter.signals import PlannerRuntimeError
 
 
 # ---------------------------------------------------------------------------

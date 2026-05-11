@@ -1,4 +1,4 @@
-from src.interpreter.models.values import NIL, T, Value
+from src.interpreter.values import NIL, T, Value
 
 
 def _bool(cond: bool) -> Value:

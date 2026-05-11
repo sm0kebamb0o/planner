@@ -11,9 +11,9 @@ from src.interpreter import matching
 from src.interpreter import functions
 from src.interpreter.trail import Trail, _UNBOUND
 from src.interpreter.env import Environment
-from src.interpreter.models.functions import PlannerFunction, SimpleParam, ListParams, ParamSpec
-from src.interpreter.models.values import Value, PlannerList, ScaleValue, BracketKind, NIL, T, _is_true
-from src.interpreter.models.signals import PlannerRuntimeError, PlannerFailure, _GoSignal, _ReturnSignal, _ProgStepStatus
+from src.interpreter.functions import PlannerFunction, SimpleParam, ListParams, ParamSpec
+from src.interpreter.values import Value, PlannerList, ScaleValue, BracketKind, NIL, T, _is_true
+from src.interpreter.signals import PlannerRuntimeError, PlannerFailure, GoSignal, ReturnSignal, ProgStepStatus
 
 
 class PlannerInterpreter:
@@ -54,7 +54,7 @@ class PlannerInterpreter:
                 msg = f.message if f.message is not None else NIL
                 self._last_failure = msg
                 print(f"=НЕУСПЕХ= {self._repr_value(msg)}")
-            except _GoSignal as go:
+            except GoSignal as go:
                 raise PlannerRuntimeError(
                     f"GO: метка '{go.label}' не определена"
                 )
@@ -268,9 +268,9 @@ class PlannerInterpreter:
                 if cur >= len(body_nodes):
                     yield last_val
                     next_cur, val, status = self._prog_step_back(forks, labels)
-                    if status is _ProgStepStatus.EXHAUSTED:
+                    if status is ProgStepStatus.EXHAUSTED:
                         return
-                    if status is _ProgStepStatus.RETURN:
+                    if status is ProgStepStatus.RETURN:
                         yield val
                         return
                     cur, last_val = next_cur, val
@@ -286,20 +286,20 @@ class PlannerInterpreter:
                     val = next(gen)
                 except StopIteration:
                     next_cur, val, status = self._prog_step_back(forks, labels)
-                    if status is _ProgStepStatus.EXHAUSTED:
+                    if status is ProgStepStatus.EXHAUSTED:
                         return
-                    if status is _ProgStepStatus.RETURN:
+                    if status is ProgStepStatus.RETURN:
                         yield val
                         return
                     cur, last_val = next_cur, val
                     continue
-                except _GoSignal as go:
+                except GoSignal as go:
                     if go.label in labels:
                         cur = labels[go.label]
                         continue
                     self._prog_close_all(forks)
                     raise
-                except _ReturnSignal as ret:
+                except ReturnSignal as ret:
                     self._prog_close_all(forks)
                     yield ret.value
                     return
@@ -308,9 +308,9 @@ class PlannerInterpreter:
                         self._prog_close_all(forks)
                         raise
                     next_cur, val, status = self._prog_step_back(forks, labels)
-                    if status is _ProgStepStatus.EXHAUSTED:
+                    if status is ProgStepStatus.EXHAUSTED:
                         return
-                    if status is _ProgStepStatus.RETURN:
+                    if status is ProgStepStatus.RETURN:
                         yield val
                         return
                     cur, last_val = next_cur, val
@@ -326,31 +326,31 @@ class PlannerInterpreter:
         self,
         forks: list[tuple[int, Iterator[Value]]],
         labels: dict[str, int],
-    ) -> tuple[int, Value, _ProgStepStatus]:
+    ) -> tuple[int, Value, ProgStepStatus]:
         while forks:
             i, gen = forks[-1]
             try:
                 val = next(gen)
-                return i + 1, val, _ProgStepStatus.OK
+                return i + 1, val, ProgStepStatus.OK
             except StopIteration:
                 forks.pop()
                 try:
                     gen.close()
                 except Exception:
                     pass
-            except _GoSignal as go:
+            except GoSignal as go:
                 forks.pop()
                 try:
                     gen.close()
                 except Exception:
                     pass
                 if go.label in labels:
-                    return labels[go.label], NIL, _ProgStepStatus.GO
+                    return labels[go.label], NIL, ProgStepStatus.GO
                 self._prog_close_all(forks)
                 raise
-            except _ReturnSignal as ret:
+            except ReturnSignal as ret:
                 self._prog_close_all(forks)
-                return -1, ret.value, _ProgStepStatus.RETURN
+                return -1, ret.value, ProgStepStatus.RETURN
             except PlannerFailure as f:
                 forks.pop()
                 try:
@@ -360,7 +360,7 @@ class PlannerInterpreter:
                 if f.target is not None:
                     self._prog_close_all(forks)
                     raise
-        return -1, NIL, _ProgStepStatus.EXHAUSTED
+        return -1, NIL, ProgStepStatus.EXHAUSTED
 
     def _prog_close_all(self, forks: list[tuple[int, Iterator[Value]]]) -> None:
         while forks:
@@ -412,7 +412,7 @@ class PlannerInterpreter:
         self.env.push_frame(declared, bindings)
         try:
             return self.eval_form(fn.body)
-        except _GoSignal as go:
+        except GoSignal as go:
             raise PlannerRuntimeError(
                 f"GO: метка '{go.label}' не определена (выход за границу LAMBDA)"
             )
@@ -455,7 +455,7 @@ class PlannerInterpreter:
         self.env.push_frame(declared, bindings)
         try:
             yield from self.eval_form_bt(fn.body)
-        except _GoSignal as go:
+        except GoSignal as go:
             raise PlannerRuntimeError(
                 f"GO: метка '{go.label}' не определена (выход за границу LAMBDA)"
             )

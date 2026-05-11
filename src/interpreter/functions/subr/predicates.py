@@ -1,4 +1,4 @@
-from src.interpreter.models.values import NIL, T, PlannerList, BracketKind, ScaleValue, _is_true, Value
+from src.interpreter.values import NIL, T, PlannerList, BracketKind, ScaleValue, _is_true, Value
 
 
 def _bool(cond: bool) -> Value:

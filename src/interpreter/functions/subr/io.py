@@ -1,5 +1,5 @@
-from src.interpreter.models.values import PlannerList, BracketKind, Value
-from src.interpreter.models.signals import PlannerRuntimeError
+from src.interpreter.values import PlannerList, BracketKind, Value
+from src.interpreter.signals import PlannerRuntimeError
 
 
 def print_(args: list, interp) -> Value:

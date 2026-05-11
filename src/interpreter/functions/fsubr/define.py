@@ -1,6 +1,6 @@
-from src.interpreter.models.values import Value, PlannerList, BracketKind
-from src.interpreter.models.signals import PlannerRuntimeError
-from src.interpreter.models.functions import PlannerFunction, SimpleParam, ListParams
+from src.interpreter.functions.spec import PlannerFunction, SimpleParam, ListParams
+from src.interpreter.values import Value, PlannerList, BracketKind
+from src.interpreter.signals import PlannerRuntimeError
 from src.parser.ast.nodes import IdentNode, LListNode
 
 

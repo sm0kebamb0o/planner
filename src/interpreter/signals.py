@@ -1,16 +1,16 @@
-import enum
+from enum import StrEnum
 
-from src.interpreter.models.values import Value
+from src.interpreter.values import Value
 
 
-class _ProgStepStatus(enum.Enum):
+class ProgStepStatus(StrEnum):
     OK        = "ok"
     GO        = "go"
     RETURN    = "return"
     EXHAUSTED = "exhausted"
 
 
-class _GoSignal(BaseException):
+class GoSignal(BaseException):
     """Сигнал перехода по метке ([GO label]).
 
     Наследован от BaseException (не Exception) чтобы не перехватывался
@@ -20,7 +20,7 @@ class _GoSignal(BaseException):
         self.label = label
 
 
-class _ReturnSignal(BaseException):
+class ReturnSignal(BaseException):
     def __init__(self, value: Value) -> None:
         self.value = value
 

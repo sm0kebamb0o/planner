@@ -1,6 +1,6 @@
 from src.interpreter.functions.backtracking.utils import _close_forks_since
-from src.interpreter.models.signals import PlannerFailure, PlannerRuntimeError
-from src.interpreter.models.values import Value
+from src.interpreter.signals import PlannerFailure, PlannerRuntimeError
+from src.interpreter.values import Value
 from src.parser.ast.nodes import IdentNode
 
 

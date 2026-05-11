@@ -1,4 +1,4 @@
-from src.interpreter.models.signals import PlannerRuntimeError
+from src.interpreter.signals import PlannerRuntimeError
 from src.parser.ast.nodes import LListNode, IdentNode
 
 

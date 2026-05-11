@@ -1,7 +1,7 @@
 from src.interpreter.functions.backtracking.perm_strg_temp import cleanup_perm, cleanup_strg, cleanup_temp
 from src.interpreter.functions.backtracking.utils import _close_forks_since
-from src.interpreter.models.signals import PlannerRuntimeError, _GoSignal, _ReturnSignal
-from src.interpreter.models.values import NIL, Value
+from src.interpreter.signals import PlannerRuntimeError, GoSignal, ReturnSignal
+from src.interpreter.values import NIL, Value
 from src.parser.ast.nodes import IdentNode, LListNode
 
 
@@ -52,7 +52,7 @@ def _make_xprog(cleanup_fn):
                     continue
                 try:
                     last_val = interp.eval_form(node)
-                except _GoSignal as go:
+                except GoSignal as go:
                     if go.label in labels:
                         i = labels[go.label]
                         continue
@@ -60,7 +60,7 @@ def _make_xprog(cleanup_fn):
                 i += 1
             cleanup_fn(interp, depth, mark)
             return last_val
-        except _ReturnSignal as ret:
+        except ReturnSignal as ret:
             cleanup_fn(interp, depth, mark)
             return ret.value
         finally:

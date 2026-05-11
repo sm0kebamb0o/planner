@@ -1,5 +1,5 @@
-from src.interpreter.models.values import NIL, _is_true, Value
-from src.interpreter.models.signals import PlannerRuntimeError
+from src.interpreter.values import NIL, _is_true, Value
+from src.interpreter.signals import PlannerRuntimeError
 from src.parser.ast.nodes import LListNode
 
 

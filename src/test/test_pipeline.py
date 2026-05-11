@@ -11,7 +11,7 @@ import sys
 import unittest
 
 from src.interpreter import PlannerInterpreter
-from src.interpreter.models.signals import PlannerFailure
+from src.interpreter.signals import PlannerFailure
 from src.lexer import Lexer
 from src.parser import PlannerParser
 

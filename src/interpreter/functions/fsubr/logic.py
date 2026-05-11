@@ -1,4 +1,4 @@
-from src.interpreter.models.values import NIL, T, _is_true, Value
+from src.interpreter.values import NIL, T, _is_true, Value
 
 
 def or_(raw_args: list, interp) -> Value:
