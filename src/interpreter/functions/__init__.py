@@ -4,6 +4,7 @@ from src.interpreter.functions.spec import (
     PlannerFunction, SimpleParam, ListParams, ParamSpec,
 )
 from src.interpreter.functions.subr import register_subrs
+from src.interpreter.functions import matching
 
 
 __all__ = [
@@ -14,3 +15,4 @@ def register_all(interp) -> None:
     register_subrs(interp)
     register_fsubrs(interp)
     register_bt(interp)
+    matching.register_all(interp)

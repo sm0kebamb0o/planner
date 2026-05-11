@@ -1,15 +1,16 @@
 from src.interpreter.values import PlannerList, BracketKind, Value
 from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.functions import codec
 
 
 def print_(args: list, interp) -> Value:
     interp._check_arity("PRINT", args, 1)
-    print(interp._repr_value(args[0]))
+    print(codec.repr_value(args[0], interp._float_digits))
     return args[0]
 
 
 def mprint(args: list, interp) -> Value:
-    print(" ".join(interp._repr_value(a) for a in args))
+    print(" ".join(codec.repr_value(a, interp._float_digits) for a in args))
     return PlannerList(elements=list(args), kind=BracketKind.ROUND)
 
 
@@ -25,7 +26,7 @@ def digits(args: list, interp) -> Value:
 
 def eval_(args: list, interp) -> Value:
     interp._check_arity("EVAL", args, 1)
-    ast_node = interp._value_to_form(args[0])
+    ast_node = codec.value_to_form(args[0])
     return interp.eval_form(ast_node)
 
 

@@ -1,5 +1,6 @@
 from src.interpreter.values import NIL, T, Value
 from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.functions import codec
 
 
 def set_(args: list, interp) -> Value:
@@ -8,7 +9,7 @@ def set_(args: list, interp) -> Value:
     if not isinstance(name, str):
         raise PlannerRuntimeError(
             f"SET: первый аргумент должен быть именем переменной, "
-            f"получено {interp._repr_value(name)!r}"
+            f"получено {codec.repr_value(name)!r}"
         )
     interp._record_undo_local(name)
     interp.env.set_local(name, args[1])

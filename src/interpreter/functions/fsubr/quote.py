@@ -1,12 +1,13 @@
 from src.interpreter.values import PlannerList, BracketKind, Value
 from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.functions import codec
 from src.parser.ast.nodes import VarRefNode, VarMode, CallNode
 
 
-def quote(raw_args: list, interp) -> Value:
+def quote(raw_args: list) -> Value:
     if len(raw_args) != 1:
         raise PlannerRuntimeError("QUOTE: ожидается ровно один аргумент")
-    return interp._ast_to_value(raw_args[0])
+    return codec.ast_to_value(raw_args[0])
 
 
 def form(raw_args: list, interp) -> Value:
@@ -25,5 +26,5 @@ def form(raw_args: list, interp) -> Value:
 
 
 def register(interp) -> None:
-    interp._fsubrs["QUOTE"] = lambda raw: quote(raw, interp)
+    interp._fsubrs["QUOTE"] = quote
     interp._fsubrs["FORM"]  = lambda raw: form(raw, interp)

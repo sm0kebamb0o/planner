@@ -1,4 +1,5 @@
 from src.interpreter.functions.spec import PlannerFunction, SimpleParam, ListParams
+from src.interpreter.functions import codec
 from src.interpreter.values import Value, PlannerList, BracketKind
 from src.interpreter.signals import PlannerRuntimeError
 from src.parser.ast.nodes import IdentNode, LListNode
@@ -34,13 +35,13 @@ def define(raw_args: list, interp) -> Value:
 
 def _make_kappa_matcher(fn_name, params, body, interp):
     """Создать замыкание-сопоставитель для KAPPA-определения."""
-    from src.interpreter.matching import match
+    from src.interpreter.functions.matching import match
 
     def matcher(raw_args, expr, interp_):
         if isinstance(params, SimpleParam):
             if params.unevaluated:
                 bound_val = PlannerList(
-                    elements=[interp_._ast_to_value(a) for a in raw_args],
+                    elements=[codec.ast_to_value(a) for a in raw_args],
                     kind=BracketKind.ROUND,
                 )
             else:
@@ -60,7 +61,7 @@ def _make_kappa_matcher(fn_name, params, body, interp):
             bindings = {}
             for (pname, unevaluated), arg_node in zip(params.params, raw_args):
                 if unevaluated:
-                    bindings[pname] = interp_._ast_to_value(arg_node)
+                    bindings[pname] = codec.ast_to_value(arg_node)
                 else:
                     bindings[pname] = interp_.eval_form(arg_node)
         else:

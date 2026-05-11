@@ -7,8 +7,8 @@ from src.parser.ast.nodes import (
     FormNode, ProgramNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )
-from src.interpreter import matching
 from src.interpreter import functions
+from src.interpreter.functions import codec
 from src.interpreter.trail import Trail, _UNBOUND
 from src.interpreter.env import Environment
 from src.interpreter.functions import PlannerFunction, SimpleParam, ListParams, ParamSpec
@@ -35,7 +35,6 @@ class PlannerInterpreter:
 
         self._fork_stack: list[Generator] = []
 
-        matching.register_all(self)
         functions.register_all(self)
 
         self._read_buffer: list[str] = []   # буфер непрочитанных строк
@@ -46,12 +45,12 @@ class PlannerInterpreter:
 
     def run(self, program: ProgramNode) -> None:
         for form in program.forms:
-            print(self._repr_form(form))
+            print(codec.repr_form(form))
             try:
                 val = self.eval_form(form)
                 print(self._repr_value(val))
             except PlannerFailure as f:
-                msg = f.message if f.message is not None else NIL
+                msg = f.message if f.message else NIL
                 self._last_failure = msg
                 print(f"=НЕУСПЕХ= {self._repr_value(msg)}")
             except GoSignal as go:
@@ -513,64 +512,6 @@ class PlannerInterpreter:
             f"LAMBDA: неверная спецификация параметров: {var_node!r}"
         )
 
-    def _ast_to_value(self, node: FormNode) -> Value:
-        if isinstance(node, IdentNode):
-            return node.name
-        if isinstance(node, IntNode):
-            return node.value
-        if isinstance(node, FloatNode):
-            return node.value
-        if isinstance(node, ScaleNode):
-            return ScaleValue(bits=node.bits, source=node.source)
-        if isinstance(node, VarRefNode):
-            prefix = {
-                (VarMode.READ,   False): ".",
-                (VarMode.ASSIGN, False): "*",
-                (VarMode.CONST,  False): ":",
-                (VarMode.READ,   True):  "!.",
-                (VarMode.ASSIGN, True):  "!*",
-                (VarMode.CONST,  True):  "!:",
-            }[(node.mode, node.segmented)]
-            return PlannerList(
-                elements=[prefix + node.name],
-                kind=BracketKind.ROUND
-            )
-        if isinstance(node, LListNode):
-            return PlannerList(
-                elements=[self._ast_to_value(e) for e in node.elements],
-                kind=BracketKind.ROUND,
-            )
-        if isinstance(node, CallNode):
-            kind = BracketKind.ANGLE if node.segmented else BracketKind.SQUARE
-            elems = [self._ast_to_value(node.head)] + [
-                self._ast_to_value(a) for a in node.args
-            ]
-            return PlannerList(elements=elems, kind=kind)
-        raise PlannerRuntimeError(f"_ast_to_value: неизвестный тип {type(node)}")
-
-    def _value_to_form(self, val: Value) -> FormNode:
-        if isinstance(val, str):
-            return IdentNode(name=val)
-        if isinstance(val, int):
-            return IntNode(value=val)
-        if isinstance(val, float):
-            return FloatNode(value=val)
-        if isinstance(val, ScaleValue):
-            return ScaleNode(bits=val.bits, source=val.source)
-        if isinstance(val, PlannerList):
-            if val.kind == BracketKind.SQUARE and val.elements:
-                head_node = self._value_to_form(val.elements[0])
-                arg_nodes = [self._value_to_form(e) for e in val.elements[1:]]
-                return CallNode(head=head_node, args=arg_nodes, segmented=False)
-            if val.kind == BracketKind.ANGLE and val.elements:
-                head_node = self._value_to_form(val.elements[0])
-                arg_nodes = [self._value_to_form(e) for e in val.elements[1:]]
-                return CallNode(head=head_node, args=arg_nodes, segmented=True)
-            return LListNode(elements=[self._value_to_form(e) for e in val.elements])
-        raise PlannerRuntimeError(
-            f"_value_to_form: нельзя конвертировать {type(val)} в форму"
-        )
-
     def _check_arity(self, name: str, args: list[Value], expected: int) -> None:
         if len(args) != expected:
             raise PlannerRuntimeError(
@@ -610,54 +551,4 @@ class PlannerInterpreter:
         )
 
     def _repr_value(self, val: Value) -> str:
-        if val is NIL or (isinstance(val, PlannerList) and not val.elements):
-            return "()"
-        if isinstance(val, str):
-            return val
-        if isinstance(val, bool):
-            return "T" if val else "()"
-        if isinstance(val, int):
-            return str(val)
-        if isinstance(val, float):
-            return f"{val:.{self._float_digits}f}"
-        if isinstance(val, ScaleValue):
-            return f"*{val.source}"
-        if isinstance(val, PlannerList):
-            inner = " ".join(self._repr_value(e) for e in val.elements)
-            brackets = {
-                BracketKind.ROUND:  ("(", ")"),
-                BracketKind.SQUARE: ("[", "]"),
-                BracketKind.ANGLE:  ("<", ">"),
-            }
-            l, r = brackets[val.kind]
-            return f"{l}{inner}{r}"
-        return repr(val)
-
-    def _repr_form(self, node: FormNode) -> str:
-        if isinstance(node, IdentNode):
-            return node.name
-        if isinstance(node, IntNode):
-            return str(node.value)
-        if isinstance(node, FloatNode):
-            return str(node.value)
-        if isinstance(node, ScaleNode):
-            return f"*{node.source}"
-        if isinstance(node, VarRefNode):
-            prefix = {
-                (VarMode.READ,   False): ".",
-                (VarMode.ASSIGN, False): "*",
-                (VarMode.CONST,  False): ":",
-                (VarMode.READ,   True):  "!.",
-                (VarMode.ASSIGN, True):  "!*",
-                (VarMode.CONST,  True):  "!:",
-            }[(node.mode, node.segmented)]
-            return prefix + node.name
-        if isinstance(node, LListNode):
-            inner = " ".join(self._repr_form(e) for e in node.elements)
-            return f"({inner})"
-        if isinstance(node, CallNode):
-            lb = "<" if node.segmented else "["
-            rb = ">" if node.segmented else "]"
-            parts = [self._repr_form(node.head)] + [self._repr_form(a) for a in node.args]
-            return f"{lb}{' '.join(parts)}{rb}"
-        return repr(node)
+        return codec.repr_value(val, self._float_digits)
