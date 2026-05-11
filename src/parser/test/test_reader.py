@@ -315,7 +315,6 @@ class TestGrammarProtoRoundTrip(unittest.TestCase):
         loaded = self._load_roundtrip()
         reader = PlannerReader.__new__(PlannerReader)
         reader.graph = loaded
-        reader._vertex_name = {v.id: v.name for v in loaded.vertices}
         reader._first = loaded.first
         reader._nullable = loaded.nullable
 

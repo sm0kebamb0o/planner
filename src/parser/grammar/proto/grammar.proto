@@ -2,15 +2,7 @@ syntax = "proto3";
 
 package grammar;
 
-message Terminal {
-  string id = 1;
-  string value = 2;
-}
-
-message Neterminal {
-  string id = 1;
-  string value = 2;
-}
+import "common.proto";
 
 message Symbol {
   oneof kind {
@@ -29,8 +21,8 @@ message Rule {
 }
 
 message Grammar {
-  repeated Terminal terminals = 1;
-  repeated Neterminal neterminals = 2;
+  repeated common.Terminal terminals = 1;
+  repeated common.Neterminal neterminals = 2;
   repeated Rule rules = 3;
   string start_id = 4;
 }

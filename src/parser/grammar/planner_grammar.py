@@ -24,7 +24,6 @@ def _build_grammar() -> Grammar:
     terminals: dict[TerminalName, Terminal] = {
         t: Terminal(t.name)
         for t in TerminalName
-        if t != TerminalName.EOF
     }
     neterminals: dict[NeterminalName, Neterminal] = {
         nt: Neterminal(nt) for nt in NeterminalName

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "common.proto";
+
 message Vertex {
   string id = 1;
   string name = 2;
@@ -8,11 +10,7 @@ message Vertex {
 message Bracket {
   string id = 1;
   string type = 2;
-}
-
-message Terminal {
-  string id = 1;
-  string value = 2;
+  string neterminal_id = 3;
 }
 
 message Edge {
@@ -35,8 +33,9 @@ message Graph {
   repeated Edge edges = 2;
   string initial = 3;
   repeated string final = 4;
-  repeated Terminal terminals = 5;
+  repeated common.Terminal terminals = 5;
   repeated Bracket brackets = 6;
   repeated string nullable = 7;
   map<string, FirstSet> first = 8;
+  repeated common.Neterminal neterminals = 9;
 }

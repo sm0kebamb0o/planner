@@ -19,7 +19,6 @@ class TT(StrEnum):
     BANG_DOT   = '!.'
     BANG_STAR  = '!*'
     BANG_COLON = '!:'
-    EOF        = 'EOF'
 
 
 class SpecialSymbols(StrEnum):

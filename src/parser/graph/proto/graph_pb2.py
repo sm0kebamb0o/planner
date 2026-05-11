@@ -22,9 +22,10 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+import common_pb2 as common__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0bgraph.proto\"\"\n\x06Vertex\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\"#\n\x07\x42racket\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t\"%\n\x08Terminal\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"p\n\x04\x45\x64ge\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\nvertex1_id\x18\x02 \x01(\t\x12\x12\n\nvertex2_id\x18\x03 \x01(\t\x12\x15\n\x0bterminal_id\x18\x04 \x01(\tH\x00\x12\x14\n\nbracket_id\x18\x05 \x01(\tH\x00\x42\x07\n\x05value\"\x1d\n\x08\x46irstSet\x12\x11\n\tterminals\x18\x01 \x03(\t\"\xff\x01\n\x05Graph\x12\x19\n\x08vertices\x18\x01 \x03(\x0b\x32\x07.Vertex\x12\x14\n\x05\x65\x64ges\x18\x02 \x03(\x0b\x32\x05.Edge\x12\x0f\n\x07initial\x18\x03 \x01(\t\x12\r\n\x05\x66inal\x18\x04 \x03(\t\x12\x1c\n\tterminals\x18\x05 \x03(\x0b\x32\t.Terminal\x12\x1a\n\x08\x62rackets\x18\x06 \x03(\x0b\x32\x08.Bracket\x12\x10\n\x08nullable\x18\x07 \x03(\t\x12 \n\x05\x66irst\x18\x08 \x03(\x0b\x32\x11.Graph.FirstEntry\x1a\x37\n\nFirstEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.FirstSet:\x02\x38\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0bgraph.proto\x1a\x0c\x63ommon.proto\"\"\n\x06Vertex\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\":\n\x07\x42racket\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t\x12\x15\n\rneterminal_id\x18\x03 \x01(\t\"p\n\x04\x45\x64ge\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\nvertex1_id\x18\x02 \x01(\t\x12\x12\n\nvertex2_id\x18\x03 \x01(\t\x12\x15\n\x0bterminal_id\x18\x04 \x01(\tH\x00\x12\x14\n\nbracket_id\x18\x05 \x01(\tH\x00\x42\x07\n\x05value\"\x1d\n\x08\x46irstSet\x12\x11\n\tterminals\x18\x01 \x03(\t\"\xaf\x02\n\x05Graph\x12\x19\n\x08vertices\x18\x01 \x03(\x0b\x32\x07.Vertex\x12\x14\n\x05\x65\x64ges\x18\x02 \x03(\x0b\x32\x05.Edge\x12\x0f\n\x07initial\x18\x03 \x01(\t\x12\r\n\x05\x66inal\x18\x04 \x03(\t\x12#\n\tterminals\x18\x05 \x03(\x0b\x32\x10.common.Terminal\x12\x1a\n\x08\x62rackets\x18\x06 \x03(\x0b\x32\x08.Bracket\x12\x10\n\x08nullable\x18\x07 \x03(\t\x12 \n\x05\x66irst\x18\x08 \x03(\x0b\x32\x11.Graph.FirstEntry\x12\'\n\x0bneterminals\x18\t \x03(\x0b\x32\x12.common.Neterminal\x1a\x37\n\nFirstEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.FirstSet:\x02\x38\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,18 +34,16 @@ if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_GRAPH_FIRSTENTRY']._loaded_options = None
   _globals['_GRAPH_FIRSTENTRY']._serialized_options = b'8\001'
-  _globals['_VERTEX']._serialized_start=15
-  _globals['_VERTEX']._serialized_end=49
-  _globals['_BRACKET']._serialized_start=51
-  _globals['_BRACKET']._serialized_end=86
-  _globals['_TERMINAL']._serialized_start=88
-  _globals['_TERMINAL']._serialized_end=125
-  _globals['_EDGE']._serialized_start=127
-  _globals['_EDGE']._serialized_end=239
-  _globals['_FIRSTSET']._serialized_start=241
-  _globals['_FIRSTSET']._serialized_end=270
-  _globals['_GRAPH']._serialized_start=273
-  _globals['_GRAPH']._serialized_end=528
-  _globals['_GRAPH_FIRSTENTRY']._serialized_start=473
-  _globals['_GRAPH_FIRSTENTRY']._serialized_end=528
+  _globals['_VERTEX']._serialized_start=29
+  _globals['_VERTEX']._serialized_end=63
+  _globals['_BRACKET']._serialized_start=65
+  _globals['_BRACKET']._serialized_end=123
+  _globals['_EDGE']._serialized_start=125
+  _globals['_EDGE']._serialized_end=237
+  _globals['_FIRSTSET']._serialized_start=239
+  _globals['_FIRSTSET']._serialized_end=268
+  _globals['_GRAPH']._serialized_start=271
+  _globals['_GRAPH']._serialized_end=574
+  _globals['_GRAPH_FIRSTENTRY']._serialized_start=519
+  _globals['_GRAPH_FIRSTENTRY']._serialized_end=574
 # @@protoc_insertion_point(module_scope)

@@ -20,6 +20,9 @@ class Vertex(metaclass=AutoIdMeta):
     name : str
     id   : Id = field(init=False)
 
+    def __hash__(self) -> int:
+        return hash(self.id)
+
 
 @dataclass
 class BracketsPair(metaclass=AutoIdMeta):
@@ -32,8 +35,9 @@ class Bracket:
         OPEN = auto()
         CLOSE = auto()
 
-    type : Type
-    id   : Id
+    type         : Type
+    id           : Id
+    neterminal   : Neterminal | None = None
 
     def __str__(self) -> str:
         return f"{'(' if self.type == self.Type.OPEN else ')'}_{self.id}"
@@ -56,8 +60,9 @@ class Graph:
     final            : list[Vertex]               = field(default_factory=list)
     terminals        : list[Terminal]             = field(default_factory=list)
     brackets         : list[Bracket]              = field(default_factory=list)
-    nullable         : frozenset[str]             = field(default_factory=frozenset)
-    first            : dict[str, frozenset[str]]  = field(default_factory=dict)
+    neterminals      : list[Neterminal]           = field(default_factory=list)
+    nullable         : frozenset[Id]              = field(init=False, default=None)
+    first            : dict[Id, frozenset[str]]   = field(init=False, default=None)
 
     # ------------------------------------------------------------------
     # Public methods
@@ -71,19 +76,6 @@ class Graph:
     def edges(self) -> list[Edge]:
         return list(self._edges.values())
 
-    def add_vertex(self, vertex: Vertex) -> "Graph":
-        self._vertices[vertex.id] = vertex
-        return self
-
-    def add_edge(self, edge: Edge) -> "Graph":
-        self._edges[edge.id] = edge
-        if edge.vertex1.id not in self._vertices:
-            self.add_vertex(edge.vertex1)
-        if edge.vertex2.id not in self._vertices:
-            self.add_vertex(edge.vertex2)
-        self._vertex_to_edges.setdefault(edge.vertex1.id, []).append(edge)
-        return self
-
     @property
     def start_vertex(self) -> Vertex:
         return self.initial
@@ -92,57 +84,11 @@ class Graph:
     def final_vertices(self) -> frozenset[Vertex]:
         return frozenset(v for v in self.final)
 
-    @property
-    def start_id(self) -> Id:
-        return self.initial.id
-
-    @property
-    def final_ids(self) -> frozenset[Id]:
-        return frozenset(v.id for v in self.final)
-
-    def vertex_by_id(self, vertex_id: Id) -> "Vertex":
-        return self._vertices[vertex_id]
-
-    def is_final(self, vertex_id: Id) -> bool:
-        return vertex_id in self.final_ids
+    def is_final(self, vertex: Vertex) -> bool:
+        return vertex in self.final_vertices
     
-    def get_adjacent_edges(self, vertex_id: Id) -> list[Edge]:
-        return self._vertex_to_edges.get(vertex_id, [])
-
-    def nt_start_id(self, nt_name: str) -> Id:
-        target = f"{nt_name}_beg"
-        for v in self._vertices.values():
-            if v.name == target:
-                return v.id
-        raise KeyError(f"Нет вершины {target!r} в графе")
-
-    def nt_end_id(self, nt_name: str) -> Id:
-        target = f"{nt_name}_end"
-        for v in self._vertices.values():
-            if v.name == target:
-                return v.id
-        raise KeyError(f"Нет вершины {target!r} в графе")
-
-    def adjacency_by_id(self) -> dict[Id, list[Edge]]:
-        result: dict[Id, list[Edge]] = defaultdict(list)
-        for edge in self.edges:
-            result[edge.vertex1.id].append(edge)
-        return dict(result)
-
-    def transition_table(
-        self,
-        vertex_name: str,
-        adj: dict[str, list["Edge"]],
-    ) -> dict[str, list["Edge"]]:
-        groups: dict[str, list[Edge]] = {}
-        for edge in adj.get(vertex_name, []):
-            if isinstance(edge.value, Terminal):
-                key = "eps" if edge.value.value == "eps" else f"terminal:{edge.value.value}"
-            else:
-                key = "open" if edge.value.type == Bracket.Type.OPEN else "close"
-            groups.setdefault(key, []).append(edge)
-
-        return groups
+    def get_adjacent_edges(self, vertex: Vertex) -> list[Edge]:
+        return self._vertex_to_edges.get(vertex.id, [])
 
     @staticmethod
     def from_grammar(grammar: Grammar) -> "Graph":
@@ -166,7 +112,11 @@ class Graph:
             return used_vertices[nonterminal.id]
 
         initial_vertex, finish_vertex = get_beg_end_vertices(grammar.start)
-        graph = Graph(initial=initial_vertex, final=[finish_vertex])
+        graph = Graph(
+            initial=initial_vertex,
+            final=[finish_vertex],
+            neterminals=list(grammar.non_terminals),
+        )
 
         alt_idx = 0
         for rule in grammar.rules:
@@ -184,20 +134,20 @@ class Graph:
                     v_left = seq_vertices[i]
                     v_right = seq_vertices[i + 1]
 
-                    graph.add_vertex(v_left)
-                    graph.add_vertex(v_right)
+                    graph._add_vertex(v_left)
+                    graph._add_vertex(v_right)
 
                     if sym in grammar.non_terminals:
                         brackets_pair = BracketsPair()
-                        open_bracket = Bracket(type=Bracket.Type.OPEN, id=brackets_pair.id)
+                        open_bracket = Bracket(type=Bracket.Type.OPEN, id=brackets_pair.id, neterminal=sym)
                         close_bracket = Bracket(type=Bracket.Type.CLOSE, id=brackets_pair.id)
                         v_sym_beg, v_sym_end = get_beg_end_vertices(sym)
-                        graph.add_edge(Edge(vertex1=v_left, vertex2=v_sym_beg, value=open_bracket))
-                        graph.add_edge(Edge(vertex1=v_sym_end, vertex2=v_right, value=close_bracket))
+                        graph._add_edge(Edge(vertex1=v_left, vertex2=v_sym_beg, value=open_bracket))
+                        graph._add_edge(Edge(vertex1=v_sym_end, vertex2=v_right, value=close_bracket))
                         graph.brackets.append(open_bracket)
                         graph.brackets.append(close_bracket)
                     elif sym in grammar.terminals or sym == EPSILON:
-                        graph.add_edge(Edge(vertex1=v_left, vertex2=v_right, value=sym))
+                        graph._add_edge(Edge(vertex1=v_left, vertex2=v_right, value=sym))
                     else:
                         raise ValueError(f"Symbol {sym!r} is not a terminal or non-terminal")
 
@@ -215,21 +165,33 @@ class Graph:
     # Inner methods
     # ------------------------------------------------------------------
 
-    def _compute_nullable(self) -> frozenset[str]:
-        nullable: set[str] = set()
+    def _add_vertex(self, vertex: Vertex) -> "Graph":
+        self._vertices[vertex.id] = vertex
+        return self
+
+    def _add_edge(self, edge: Edge) -> "Graph":
+        self._edges[edge.id] = edge
+        if edge.vertex1.id not in self._vertices:
+            self._add_vertex(edge.vertex1)
+        if edge.vertex2.id not in self._vertices:
+            self._add_vertex(edge.vertex2)
+        self._vertex_to_edges.setdefault(edge.vertex1.id, []).append(edge)
+        return self
+
+    def _compute_nullable(self) -> frozenset[Id]:
+        nullable: set[Id] = set()
         for vertex_id, edges in self._vertex_to_edges.items():
             v = self._vertices.get(vertex_id)
             if v is None or not v.name.endswith("_beg"):
                 continue
-            nt_name = v.name.removesuffix("_beg")
             for edge in edges:
                 if isinstance(edge.value, Terminal) and edge.value == EPSILON:
-                    nullable.add(nt_name)
+                    nullable.add(vertex_id)
                     break
         return frozenset(nullable)
 
-    def _compute_first(self) -> dict[str, frozenset[str]]:
-        first: dict[str, frozenset[str]] = {}
+    def _compute_first(self) -> dict[Id, frozenset[str]]:
+        first: dict[Id, frozenset[str]] = {}
 
         def compute(beg_vertex_id: Id, seen: frozenset[Id]) -> frozenset[str]:
             if beg_vertex_id in seen:
@@ -246,8 +208,7 @@ class Graph:
 
         for vertex_id, v in self._vertices.items():
             if v.name.endswith("_beg"):
-                nt_name = v.name.removesuffix("_beg")
-                first[nt_name] = compute(vertex_id, frozenset())
+                first[vertex_id] = compute(vertex_id, frozenset())
 
         return first
 
@@ -272,10 +233,17 @@ class Graph:
             pt.id = t.id
             pt.value = t.value
 
+        for nt in self.neterminals:
+            pnt = proto.neterminals.add()
+            pnt.id = nt.id
+            pnt.value = nt.value
+
         for b in self.brackets:
             pb_msg = proto.brackets.add()
             pb_msg.id = b.id
             pb_msg.type = b.type.name
+            if b.neterminal:
+                pb_msg.neterminal_id = b.neterminal.id
 
         for e in self.edges:
             pe = proto.edges.add()
@@ -287,11 +255,11 @@ class Graph:
             elif isinstance(e.value, Bracket):
                 pe.bracket_id = e.value.id
 
-        for nt_name in self.nullable:
-            proto.nullable.append(nt_name)
+        for vertex_id in self.nullable:
+            proto.nullable.append(vertex_id)
 
-        for nt_name, terminals_set in self.first.items():
-            first_set = proto.first[nt_name]
+        for vertex_id, terminals_set in self.first.items():
+            first_set = proto.first[vertex_id]
             for t in sorted(terminals_set):
                 first_set.terminals.append(t)
 
@@ -303,10 +271,11 @@ class Graph:
         with open(file_path, "r") as f:
             text_format.Parse(f.read(), proto)
 
-        id_to_vertex:    dict[str, Vertex]   = {}
-        id_to_terminal:  dict[str, Terminal] = {}
-        open_brackets:   dict[str, Bracket]  = {}
-        close_brackets:  dict[str, Bracket]  = {}
+        id_to_vertex:    dict[str, Vertex]     = {}
+        id_to_terminal:  dict[str, Terminal]   = {}
+        id_to_nt:        dict[str, Neterminal] = {}
+        open_brackets:   dict[str, Bracket]    = {}
+        close_brackets:  dict[str, Bracket]    = {}
 
         for pv in proto.vertices:
             v = Vertex(pv.name, id=pv.id)
@@ -316,8 +285,13 @@ class Graph:
             t = Terminal(pt.value, id=pt.id)
             id_to_terminal[t.id] = t
 
+        for pnt in proto.neterminals:
+            nt = Neterminal(pnt.value, id=pnt.id)
+            id_to_nt[nt.id] = nt
+
         for pb in proto.brackets:
-            b = Bracket(type=Bracket.Type[pb.type], id=pb.id)
+            nt = id_to_nt.get(pb.neterminal_id) if pb.neterminal_id else None
+            b = Bracket(type=Bracket.Type[pb.type], id=pb.id, neterminal=nt)
             if b.type == Bracket.Type.OPEN:
                 open_brackets[b.id] = b
             else:
@@ -329,19 +303,19 @@ class Graph:
         for v in id_to_vertex.values():
             g._vertices[v.id] = v
 
-        g.terminals = list(id_to_terminal.values())
-        g.brackets  = list(open_brackets.values()) + list(close_brackets.values())
-        g.final     = [id_to_vertex[fid] for fid in proto.final if fid in id_to_vertex]
+        g.terminals    = list(id_to_terminal.values())
+        g.neterminals  = list(id_to_nt.values())
+        g.brackets     = list(open_brackets.values()) + list(close_brackets.values())
+        g.final        = [id_to_vertex[fid] for fid in proto.final if fid in id_to_vertex]
 
         g.nullable = frozenset(proto.nullable)
-        g.first    = {nt: frozenset(fs.terminals) for nt, fs in proto.first.items()}
+        g.first    = {vid: frozenset(fs.terminals) for vid, fs in proto.first.items()}
 
         for pe in proto.edges:
             which = pe.WhichOneof("value")
             if which == "terminal_id":
                 value: Terminal | Bracket = id_to_terminal[pe.terminal_id]
             else:
-                # Open brackets lead to *_beg vertices; all others are close brackets
                 dest_name = id_to_vertex[pe.vertex2_id].name
                 bracket_pool = open_brackets if dest_name.endswith("_beg") else close_brackets
                 value = bracket_pool[pe.bracket_id]
@@ -351,7 +325,7 @@ class Graph:
                 value=value,
                 id=pe.id,
             )
-            g.add_edge(e)
+            g._add_edge(e)
 
         return g
 
