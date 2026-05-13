@@ -14,8 +14,11 @@ def form(raw_args: list, interp) -> Value:
     result = []
     for arg in raw_args:
         if isinstance(arg, VarRefNode) and arg.segmented:
-            raw_v = (interp.env.get_local(arg.name) if arg.mode == VarMode.READ
-                     else interp.env.get_constant(arg.name))
+            raw_v = (
+                interp.env.get_local(arg.name)
+                if arg.mode == VarMode.READ
+                else interp.env.get_constant(arg.name)
+            )
             result.extend(interp._segment(raw_v))
         elif isinstance(arg, CallNode) and arg.segmented:
             raw_v = interp._eval_call(arg.head, arg.args)

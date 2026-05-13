@@ -17,6 +17,7 @@ def cond(raw_args: list, interp) -> Value:
             if len(clause) == 1:
                 return cond_val
             last: Value = NIL
+            # Формально может быть bt
             for body_expr in clause[1:]:
                 last = interp.eval_form(body_expr)
             return last

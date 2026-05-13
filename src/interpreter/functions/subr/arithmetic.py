@@ -1,16 +1,16 @@
 import math
 import random
 
-from src.interpreter.values import NIL, T, PlannerList, BracketKind, Value
+from src.interpreter.values import Value
 from src.interpreter.errors import PlannerRuntimeError
 
 
-def add(args: list) -> Value:
+def add(args: list, interp) -> Value:
     if not args:
         raise PlannerRuntimeError("+: нужен хотя бы один аргумент")
     total: int | float = 0
     for a in args:
-        total = total + _as_number("+", a)
+        total = total + interp._as_number("+", a)
     return total
 
 
@@ -19,12 +19,12 @@ def sub(args: list, interp) -> Value:
     return interp._as_number("-", args[0]) - interp._as_number("-", args[1])
 
 
-def mul(args: list) -> Value:
+def mul(args: list, interp) -> Value:
     if not args:
         raise PlannerRuntimeError("×: нужен хотя бы один аргумент")
     result: int | float = 1
     for a in args:
-        result = result * _as_number("×", a)
+        result = result * interp._as_number("×", a)
     return result
 
 
@@ -106,17 +106,11 @@ def random_(args: list) -> Value:
     return random.random()
 
 
-def _as_number(fn: str, val) -> int | float:
-    if isinstance(val, (int, float)) and not isinstance(val, bool):
-        return val
-    raise PlannerRuntimeError(f"{fn}: ожидалось число, получено {val!r}")
-
-
 def register(interp) -> None:
-    interp._subrs["+"]      = add
+    interp._subrs["+"]      = lambda args: add(args, interp)
     interp._subrs["-"]      = lambda args: sub(args, interp)
-    interp._subrs["×"]      = mul
-    interp._subrs["*"]      = mul
+    interp._subrs["×"]      = lambda args: mul(args, interp)
+    interp._subrs["*"]      = lambda args: mul(args, interp)
     interp._subrs["/"]      = lambda args: div(args, interp)
     interp._subrs["DIV"]    = lambda args: idiv(args, interp)
     interp._subrs["MOD"]    = lambda args: mod(args, interp)

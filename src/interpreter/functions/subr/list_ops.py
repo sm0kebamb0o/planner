@@ -1,4 +1,4 @@
-from src.interpreter.values import NIL, T, PlannerList, BracketKind, Value
+from src.interpreter.values import NIL, T, PlannerList, Value
 from src.interpreter.errors import PlannerRuntimeError
 
 

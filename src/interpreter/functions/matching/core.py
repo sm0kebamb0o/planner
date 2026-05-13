@@ -4,7 +4,6 @@ from src.parser.ast.nodes import (
     FormNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )
-from src.interpreter.trail import _UNBOUND
 from src.interpreter.values import BracketKind, PlannerList, ScaleValue
 
 

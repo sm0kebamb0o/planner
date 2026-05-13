@@ -3,17 +3,17 @@ from src.interpreter.errors import PlannerRuntimeError
 
 
 def bitor(args: list, interp) -> Value:
-    interp._check_arity("\\/", args, 2)
-    s1 = interp._as_scale("\\/", args[0])
-    s2 = interp._as_scale("\\/", args[1])
+    interp._check_arity("BITOR", args, 2)
+    s1 = interp._as_scale("BITOR", args[0])
+    s2 = interp._as_scale("BITOR", args[1])
     bits = s1.bits | s2.bits
     return ScaleValue(bits=bits, source=oct(bits)[2:])
 
 
 def bitand(args: list, interp) -> Value:
-    interp._check_arity("/\\", args, 2)
-    s1 = interp._as_scale("/\\", args[0])
-    s2 = interp._as_scale("/\\", args[1])
+    interp._check_arity("BITAND", args, 2)
+    s1 = interp._as_scale("BITAND", args[0])
+    s2 = interp._as_scale("BITAND", args[1])
     bits = s1.bits & s2.bits
     return ScaleValue(bits=bits, source=oct(bits)[2:])
 
@@ -45,8 +45,8 @@ def topbit(args: list, interp) -> Value:
 
 
 def register(interp) -> None:
-    interp._subrs["\\/"]    = lambda args: bitor(args, interp)
-    interp._subrs["/\\"]    = lambda args: bitand(args, interp)
+    interp._subrs["BITOR"]    = lambda args: bitor(args, interp)
+    interp._subrs["BITAND"]    = lambda args: bitand(args, interp)
     interp._subrs["COMP"]   = lambda args: comp(args, interp)
     interp._subrs["SHIFT"]  = lambda args: shift(args, interp)
     interp._subrs["BSUM"]   = lambda args: bsum(args, interp)

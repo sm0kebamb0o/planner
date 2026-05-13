@@ -2,41 +2,32 @@ from src.interpreter.values import NIL, _is_true
 from src.interpreter.signals import PlannerFailure
 
 
-def gate_all(raw_args: list, interp):
-    """GATE в режиме всех решений: перебирает первый аргумент в BT-режиме."""
+def gate(raw_args: list, interp):
     if not raw_args:
         return NIL
-    last = NIL
-    for val in interp.eval_form_bt(raw_args[0]):
-        try:
-            last = val
-            for node in raw_args[1:]:
-                last = interp.eval_form(node)
-            return last
-        except PlannerFailure as f:
-            if f.target is not None:
-                raise
-            interp._last_failure = f.message if f.message is not None else NIL
-            continue
-    return NIL
+    try:
+        return next(interp._eval_body_bt(raw_args))
+    except StopIteration:
+        return NIL
+    except PlannerFailure as f:
+        if f.target is not None:
+            raise
+        interp._last_failure = f.message if f.message is not None else NIL
+        return NIL
 
 
 def unfalse(raw_args: list, interp):
-    """UNFALSE e1 e2 ... — если вычисление неуспешно или значение () → FAIL."""
-    mark = interp._trail.mark()
     try:
-        val = NIL
-        for node in raw_args:
-            val = interp.eval_form(node)
-        if not _is_true(val):
-            interp._trail.undo_to(mark)
-            raise PlannerFailure(message="UNFALSE")
-        return val
+        val = next(interp._eval_body_bt(raw_args))
+    except StopIteration:
+        raise PlannerFailure()
     except PlannerFailure:
-        interp._trail.undo_to(mark)
         raise
+    if not _is_true(val):
+        raise PlannerFailure()
+    return val
 
 
 def register(interp) -> None:
-    interp._fsubrs["GATE"]    = lambda raw: gate_all(raw, interp)
+    interp._fsubrs["GATE"]    = lambda raw: gate(raw, interp)
     interp._fsubrs["UNFALSE"] = lambda raw: unfalse(raw, interp)

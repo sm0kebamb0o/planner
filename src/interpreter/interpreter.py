@@ -9,7 +9,7 @@ from src.parser.ast.nodes import (
 )
 from src.interpreter import functions
 from src.interpreter.functions import codec
-from src.interpreter.trail import Trail, _UNBOUND
+from src.interpreter.trail import Trail
 from src.interpreter.env import Environment
 from src.interpreter.functions import PlannerFunction, SimpleParam, ListParams, ParamSpec
 from src.interpreter.errors import PlannerRuntimeError

@@ -5,14 +5,16 @@ from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.functions.matching.core import match
 
 
+def _non(args, expr, interp):
+    if not args:
+        raise PlannerRuntimeError("NON: нужен образец")
+    mark = interp._trail.mark()
+    result = match(args[0], expr, interp)
+    interp._trail.undo_to(mark)
+    return not result
+
+
 def register(matchers: dict, interp) -> None:
-    def _non(args, expr, interp):
-        if not args:
-            raise PlannerRuntimeError("NON: нужен образец")
-        mark = interp._trail.mark()
-        result = match(args[0], expr, interp)
-        interp._trail.undo_to(mark)
-        return not result
 
     matchers["NON"] = _non
 

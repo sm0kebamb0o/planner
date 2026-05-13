@@ -27,14 +27,16 @@ def define(raw_args: list, interp) -> Value:
 
     if keyword.name == "LAMBDA":
         interp._functions[fn_name] = PlannerFunction(name=fn_name, params=params, body=body_node)
-    else:  # KAPPA
+    elif keyword.name == "KAPPA":
         interp._matchers[fn_name] = _make_kappa_matcher(fn_name, params, body_node, interp)
+    else:
+        raise PlannerRuntimeError("DEFINE: ожидается ключевое слово LAMBDA или KAPPA")
 
     return fn_name
 
 
 def _make_kappa_matcher(fn_name, params, body, interp):
-    """Создать замыкание-сопоставитель для KAPPA-определения."""
+    # Ожидается что сопоставитель вызывается не часто
     from src.interpreter.functions.matching import match
 
     def matcher(raw_args, expr, interp_):

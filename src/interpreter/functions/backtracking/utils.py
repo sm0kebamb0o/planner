@@ -1,4 +1,5 @@
 def _close_forks_since(interp, depth: int) -> None:
+    # Удаляем F-точки с конца стека
     while len(interp._fork_stack) > depth:
         gen = interp._fork_stack.pop()
         try:
@@ -8,11 +9,9 @@ def _close_forks_since(interp, depth: int) -> None:
 
 
 def _tracked_gen(gen, interp):
+    # Добпавляем F-точку
     interp._fork_stack.append(gen)
     try:
         yield from gen
     finally:
-        try:
-            interp._fork_stack.remove(gen)
-        except ValueError:
-            pass
+        interp._fork_stack.remove(gen)

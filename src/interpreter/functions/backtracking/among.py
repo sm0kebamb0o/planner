@@ -10,6 +10,7 @@ def among(raw_args: list, interp):
     lst = interp.eval_form(raw_args[0])
     if not isinstance(lst, PlannerList) or not lst.elements:
         interp._last_failure = "AMONG"
+        # Тут неявно вызовется PlannerFailure c EXHAUSTED
         return
 
     def _gen():

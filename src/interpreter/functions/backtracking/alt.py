@@ -22,23 +22,27 @@ def alt(raw_args: list, interp):
 
 
 def fp(raw_args: list, interp):
-    """FP name e1 e2 ... — именованная развилка.
-
-    При (FAIL msg NAME) адресованный неуспех перебрасывается без метки.
-    """
     if not raw_args:
         raise PlannerRuntimeError("FP: нужно имя развилки и хотя бы одна альтернатива")
 
-    name     = str(interp.eval_form(raw_args[0]))
+    name = str(interp.eval_form(raw_args[0]))
     alt_args = raw_args[1:]
 
     def _gen():
-        try:
-            yield from alt(alt_args, interp)
-        except PlannerFailure as f:
-            if f.target == name:
-                raise PlannerFailure(message=f.message)
-            raise
+        for expr in alt_args:
+            mark = interp._trail.mark()
+            try:
+                val = interp.eval_form(expr)
+                yield val
+                interp._trail.undo_to(mark)
+            except PlannerFailure as f:
+                interp._trail.undo_to(mark)
+                if f.target == name:
+                    interp._last_failure = f.message if f.message is not None else NIL
+                elif f.target is not None:
+                    raise
+                else:
+                    interp._last_failure = f.message if f.message is not None else NIL
 
     yield from _tracked_gen(_gen(), interp)
 

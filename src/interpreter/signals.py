@@ -11,11 +11,6 @@ class ProgStepStatus(StrEnum):
 
 
 class GoSignal(BaseException):
-    """Сигнал перехода по метке ([GO label]).
-
-    Наследован от BaseException (не Exception) чтобы не перехватывался
-    левыми 'except Exception:' внутри функций.
-    """
     def __init__(self, label: str) -> None:
         self.label = label
 
@@ -26,16 +21,7 @@ class ReturnSignal(BaseException):
 
 
 class PlannerFailure(BaseException):
-    """Сигнал неуспеха в режиме возвратов.
-
-    Наследован от BaseException чтобы не перехватывался обычными
-    'except Exception:' внутри интерпретатора.
-
-    Атрибуты:
-        message: сообщение, связанное с неуспехом (значение [MESS]).
-        target:  имя именованной развилки для [FAIL e name];
-                 None означает «ближайшая развилка».
-    """
+    """Сигнал неуспеха в режиме возвратов"""
     def __init__(self, message: "Value | None" = None,
                  target: str | None = None) -> None:
         self.message: "Value" = message  # type: ignore[assignment]

@@ -26,7 +26,6 @@ def _parse_mode(mode_val):
 
 
 def find(raw_args: list, interp) -> Value:
-    """FIND mode (v1 ... vm) p e1 e2 ... ek"""
     if len(raw_args) < 3:
         raise PlannerRuntimeError("FIND: нужны mode, vars, p и тело")
 

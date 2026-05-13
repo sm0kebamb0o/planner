@@ -33,7 +33,6 @@ def loop(raw_args: list, interp) -> Value:
 
 
 def _for_bt_chain(body_nodes, param_name, i, n, interp):
-    """BT-генератор: все итерации FOR связаны в единую цепочку отката."""
     interp.env.set_local(param_name, i)
     for body_val in interp._eval_body_bt(body_nodes):
         if i == n:
