@@ -1,6 +1,5 @@
 from src.interpreter.values import NIL, _is_true
 from src.interpreter.signals import PlannerFailure
-from src.parser.ast.nodes import LListNode
 
 
 def gate_all(raw_args: list, interp):

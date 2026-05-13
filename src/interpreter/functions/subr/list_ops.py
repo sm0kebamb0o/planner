@@ -1,5 +1,5 @@
 from src.interpreter.values import NIL, T, PlannerList, BracketKind, Value
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 
 
 def elem(args: list, interp) -> Value:

@@ -1,7 +1,7 @@
 from src.interpreter.functions.matching.core import match
 from src.interpreter.functions.matching import type_, numeric, logic, special
 from src.interpreter.values import NIL, T
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 
 
 def register_all(interp) -> None:

@@ -1,5 +1,6 @@
 from src.interpreter.values import Value, NIL
-from src.interpreter.signals import PlannerRuntimeError, GoSignal, ReturnSignal
+from src.interpreter.signals import GoSignal, ReturnSignal
+from src.interpreter.errors import PlannerRuntimeError
 
 
 def go(args: list, interp) -> Value:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from src.parser.ast.nodes import LListNode, IdentNode
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.functions.matching.core import match
 
 

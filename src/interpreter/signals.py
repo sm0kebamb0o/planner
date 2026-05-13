@@ -25,10 +25,6 @@ class ReturnSignal(BaseException):
         self.value = value
 
 
-class PlannerRuntimeError(Exception):
-    """Ошибка времени выполнения программы на Плэннере."""
-
-
 class PlannerFailure(BaseException):
     """Сигнал неуспеха в режиме возвратов.
 

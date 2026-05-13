@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from src.parser.ast.nodes import IdentNode
 from src.interpreter.values import NIL, PlannerList, _is_true
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.functions import codec
 from src.interpreter.functions.matching.core import match, match_list, _is_segmented
 

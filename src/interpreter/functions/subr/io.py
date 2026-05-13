@@ -1,5 +1,5 @@
 from src.interpreter.values import PlannerList, BracketKind, Value
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.functions import codec
 
 

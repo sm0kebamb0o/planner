@@ -1,5 +1,5 @@
 from src.interpreter.values import ScaleValue, Value
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 
 
 def bitor(args: list, interp) -> Value:

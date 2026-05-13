@@ -1,7 +1,7 @@
 import math
 
 from src.interpreter.values import Value
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 
 
 def register(interp) -> None:

@@ -1,5 +1,6 @@
 from src.interpreter.values import NIL
-from src.interpreter.signals import PlannerFailure, PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
+from src.interpreter.signals import PlannerFailure
 
 
 def fail(args: list, interp):

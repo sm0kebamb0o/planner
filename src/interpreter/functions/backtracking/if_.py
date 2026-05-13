@@ -1,5 +1,6 @@
 from src.interpreter.values import NIL, Value
-from src.interpreter.signals import PlannerFailure, PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
+from src.interpreter.signals import PlannerFailure
 from src.parser.ast.nodes import LListNode
 
 

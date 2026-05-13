@@ -1,6 +1,7 @@
 from src.interpreter.functions.backtracking.perm_strg_temp import cleanup_perm, cleanup_strg, cleanup_temp
 from src.interpreter.functions.backtracking.utils import _close_forks_since
-from src.interpreter.signals import PlannerRuntimeError, GoSignal, ReturnSignal
+from src.interpreter.signals import GoSignal, ReturnSignal
+from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.values import NIL, Value
 from src.parser.ast.nodes import IdentNode, LListNode
 

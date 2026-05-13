@@ -5,7 +5,7 @@ from src.parser.ast.nodes import (
     VarRefNode, VarMode, LListNode, CallNode,
 )
 from src.interpreter.values import Value, PlannerList, ScaleValue, BracketKind, NIL
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 
 _VAR_PREFIX = {
     (VarMode.READ,   False): ".",

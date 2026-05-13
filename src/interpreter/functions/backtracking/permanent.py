@@ -1,5 +1,5 @@
 from src.interpreter.values import NIL, T, PlannerList, Value
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 
 
 def pset(args: list, interp) -> Value:

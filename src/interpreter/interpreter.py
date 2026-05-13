@@ -12,8 +12,9 @@ from src.interpreter.functions import codec
 from src.interpreter.trail import Trail, _UNBOUND
 from src.interpreter.env import Environment
 from src.interpreter.functions import PlannerFunction, SimpleParam, ListParams, ParamSpec
+from src.interpreter.errors import PlannerRuntimeError
+from src.interpreter.signals import PlannerFailure, GoSignal, ReturnSignal, ProgStepStatus
 from src.interpreter.values import Value, PlannerList, ScaleValue, BracketKind, NIL, T, _is_true
-from src.interpreter.signals import PlannerRuntimeError, PlannerFailure, GoSignal, ReturnSignal, ProgStepStatus
 
 
 class PlannerInterpreter:
@@ -59,54 +60,17 @@ class PlannerInterpreter:
                 )
         
     # ------------------------------------------------------------------
-    # Private methods
+    # Inner methods
     # ------------------------------------------------------------------
 
-    def eval_form(self, node: FormNode) -> Value:  # noqa: C901
-        if isinstance(node, IdentNode):
-            return node.name
-
-        if isinstance(node, IntNode):
-            return node.value
-
-        if isinstance(node, FloatNode):
-            return node.value
-
-        if isinstance(node, ScaleNode):
-            return ScaleValue(bits=node.bits, source=node.source)
-
-        if isinstance(node, VarRefNode):
-            if node.mode == VarMode.READ:
-                val = self.env.get_local(node.name)
-            elif node.mode == VarMode.CONST:
-                val = self.env.get_constant(node.name)
-            elif node.mode == VarMode.ASSIGN:
-                raise PlannerRuntimeError(
-                    f"*{node.name}: обращение с префиксом * используется для записи значения"
-                )
-            else:
-                raise PlannerRuntimeError(f"Неизвестный режим переменной: {node.mode}")
-
-            if node.segmented:
-                segs = self._segment(val)
-                # Кажется имеет смысл переделать логику в этом месте
-                # После сегментации атома не должнен получаться список
-                # После сегментации списка тоже получается не список :thinking:
-                return PlannerList(elements=segs, kind=BracketKind.ROUND)
-            return val
-
-        if isinstance(node, LListNode):
-            return self._eval_llist(node)
-
-        if isinstance(node, CallNode):
-            result = self._eval_call(node.head, node.args)
-            if node.segmented:
-                segs = self._segment(result)
-                return PlannerList(elements=segs, kind=BracketKind.ROUND)
-            return result
-
-        raise PlannerRuntimeError(f"Неизвестный тип узла: {type(node)}")
-
+    def eval_form(self, node: FormNode) -> Value:
+        gen = self.eval_form_bt(node)
+        try:
+            return next(gen)
+        except StopIteration:
+            raise PlannerFailure(message=self._last_failure or NIL)
+        finally:
+            gen.close()
 
     def _eval_llist(self, node: LListNode) -> PlannerList:
         result: list[Value] = []
@@ -118,15 +82,19 @@ class PlannerInterpreter:
                 elif elem.mode == VarMode.CONST:
                     raw = self.env.get_constant(elem.name)
                 else:
-                    # кажется такое может быть в IS конструкциях
                     raise PlannerRuntimeError("!*X в списке недопустимо")
                 result.extend(self._segment(raw))
 
             elif isinstance(elem, CallNode) and elem.segmented:
-                if not elem.args and isinstance(elem.head, IdentNode) and not elem.head.name:
-                    pass  # <> — пустой wildcard, не добавляет элементов
+                if (
+                    not elem.args
+                    and isinstance(elem.head, IdentNode)
+                    and not elem.head.name
+                ):
+                    # <> — пустой wildcard, не добавляет элементов
+                    pass
                 else:
-                    raw = self._eval_call(elem.head, elem.args)
+                    raw = self.eval_form(elem)
                     result.extend(self._segment(raw))
 
             else:
@@ -140,69 +108,98 @@ class PlannerInterpreter:
         # Атомы (int, float, str, ScaleValue) — сегмент из одного элемента
         return [val]
 
-    def _eval_call(self, head: FormNode, raw_args: list[FormNode]) -> Value:
-        if isinstance(head, IdentNode):
-            fn_name: str = head.name
-        else:
-            head_val = self.eval_form(head)
-            if not isinstance(head_val, str):
-                raise PlannerRuntimeError(
-                    f"Голова вызова должна вычисляться в идентификатор, "
-                    f"получено: {self._repr_value(head_val)!r}"
-                )
-            fn_name = head_val
-
-        # SUBR: аргументы вычисляются заранее
-        if fn_name in self._subrs:
-            evaled = [self.eval_form(a) for a in raw_args]
-            return self._subrs[fn_name](evaled)
-
-        # FSUBR: аргументы НЕ вычисляются
-        if fn_name in self._fsubrs:
-            return self._fsubrs[fn_name](raw_args)
-
-        # Пока не встретили первую bt функцию, можно выполнять код в нормальном режиме
-        if fn_name in self._bt_fsubrs:
-            gen = self._bt_fsubrs[fn_name](raw_args)
-            try:
-                val = next(gen)
-                return val
-            except StopIteration:
-                raise PlannerFailure(message=self._last_failure or NIL)
-            # finally:
-            #     gen.close()
-
-        # Пользовательская функция
-        if fn_name in self._functions:
-            return self._call_user_function(self._functions[fn_name], raw_args)
-
-        raise PlannerRuntimeError(f"Неизвестная функция: '{fn_name}'")
 
     def eval_form_bt(self, node: FormNode) -> Iterator[Value]:
-        if isinstance(node, CallNode) and isinstance(node.head, IdentNode):
-            fn_name = node.head.name
+        if isinstance(node, CallNode):
+            if isinstance(node.head, IdentNode):
+                fn_name = node.head.name
+            else:
+                fn_name = self.eval_form(node.head)
+                if not isinstance(fn_name, str):
+                    raise PlannerRuntimeError(
+                        f"Голова вызова должна вычисляться в идентификатор, "
+                        f"получено: {self._repr_value(fn_name)!r}"
+                    )
+
             if fn_name in self._bt_fsubrs:
-                yield from self._bt_fsubrs[fn_name](node.args)
+                for val in self._bt_fsubrs[fn_name](node.args):
+                    if node.segmented:
+                        yield PlannerList(elements=self._segment(val), kind=BracketKind.ROUND)
+                    else:
+                        yield val
                 return
-            # Обычный SUBR в BT-режиме: аргументы вычисляются через цепочку
+
             if fn_name in self._subrs:
-                yield from self._eval_subr_bt(fn_name, node.args)
+                for val in self._eval_subr_bt(fn_name, node.args):
+                    if node.segmented:
+                        yield PlannerList(elements=self._segment(val), kind=BracketKind.ROUND)
+                    else:
+                        yield val
                 return
 
-            # Пользовательская функция в BT-режиме
+            if fn_name in self._fsubrs:
+                try:
+                    result = self._fsubrs[fn_name](node.args)
+                    if node.segmented:
+                        yield PlannerList(elements=self._segment(result), kind=BracketKind.ROUND)
+                    else:
+                        yield result
+                except PlannerFailure as f:
+                    if f.target is not None:
+                        raise
+                    self._last_failure = f.message if f.message is not None else NIL
+                return
+
             if fn_name in self._functions:
-                yield from self._call_user_function_bt(
-                    self._functions[fn_name], node.args
-                )
+                for val in self._call_user_function_bt(self._functions[fn_name], node.args):
+                    if node.segmented:
+                        yield PlannerList(elements=self._segment(val), kind=BracketKind.ROUND)
+                    else:
+                        yield val
                 return
 
-        # Всё остальное: детерминированное вычисление, обёрнутое try/except
-        try:
-            yield self.eval_form(node)
-        except PlannerFailure as f:
-            if f.target is not None:
-                raise
-            self._last_failure = f.message if f.message is not None else NIL
+            raise PlannerRuntimeError(f"Неизвестная функция: '{fn_name}'")
+
+        if isinstance(node, IdentNode):
+            yield node.name
+            return
+
+        if isinstance(node, IntNode):
+            yield node.value
+            return
+
+        if isinstance(node, FloatNode):
+            yield node.value
+            return
+
+        if isinstance(node, ScaleNode):
+            yield ScaleValue(bits=node.bits, source=node.source)
+            return
+
+        if isinstance(node, VarRefNode):
+            if node.mode == VarMode.READ:
+                val = self.env.get_local(node.name)
+            elif node.mode == VarMode.CONST:
+                val = self.env.get_constant(node.name)
+            elif node.mode == VarMode.ASSIGN:
+                raise PlannerRuntimeError(
+                    f"*{node.name}: обращение с префиксом * используется для записи значения"
+                )
+            else:
+                raise PlannerRuntimeError(
+                    f"Неизвестный режим переменной: {node.mode}"
+                )
+            if node.segmented:
+                yield PlannerList(elements=self._segment(val), kind=BracketKind.ROUND)
+            else:
+                yield val
+            return
+
+        if isinstance(node, LListNode):
+            yield self._eval_llist(node)
+            return
+
+        raise PlannerRuntimeError(f"Неизвестный тип узла: {type(node)}")
 
     def _eval_subr_bt(
         self, fn_name: str, raw_args: list[FormNode]
@@ -229,6 +226,8 @@ class PlannerInterpreter:
                 if f.target is not None:
                     raise
                 self._last_failure = f.message if f.message is not None else NIL
+            # Тут неявно вызовется StopIteration из-за чего будет развивать
+            # другую "ветку" генераторов
             return
         # Для каждого аргумента фактически будет создавать новый генератор
         for arg_val in self.eval_form_bt(raw_args[i]):
@@ -266,55 +265,82 @@ class PlannerInterpreter:
             while True:
                 if cur >= len(body_nodes):
                     yield last_val
-                    next_cur, val, status = self._prog_step_back(forks, labels)
-                    if status is ProgStepStatus.EXHAUSTED:
-                        return
-                    if status is ProgStepStatus.RETURN:
-                        yield val
-                        return
+                    while True:
+                        next_cur, val, status = self._prog_step_back(forks, labels)
+                        if status == ProgStepStatus.EXHAUSTED:
+                            return
+                        if status == ProgStepStatus.RETURN:
+                            yield val
+                            continue
+                        break
                     cur, last_val = next_cur, val
                     continue
 
                 node = body_nodes[cur]
                 if isinstance(node, IdentNode) and node.name in labels:
+                    # Наткнулись на метку
                     cur += 1
                     continue
 
                 try:
                     gen = self.eval_form_bt(node)
                     val = next(gen)
+
                 except StopIteration:
-                    next_cur, val, status = self._prog_step_back(forks, labels)
-                    if status is ProgStepStatus.EXHAUSTED:
-                        return
-                    if status is ProgStepStatus.RETURN:
-                        yield val
-                        return
+                    # Пытаемся продолжить "ветку" которую можем продолжить
+                    while True:
+                        next_cur, val, status = self._prog_step_back(forks, labels)
+                        if status == ProgStepStatus.EXHAUSTED:
+                            return
+                        if status == ProgStepStatus.RETURN:
+                            yield val
+                            # Вернемся на предыдущую F-точку
+                            continue
+                        break
                     cur, last_val = next_cur, val
                     continue
+
                 except GoSignal as go:
                     if go.label in labels:
                         cur = labels[go.label]
                         continue
+
+                    # Не нашли метку в известных
                     self._prog_close_all(forks)
                     raise
+
                 except ReturnSignal as ret:
-                    self._prog_close_all(forks)
                     yield ret.value
-                    return
+                    while True:
+                        next_cur, val, status = self._prog_step_back(forks, labels)
+                        if status == ProgStepStatus.EXHAUSTED:
+                            return
+                        if status == ProgStepStatus.RETURN:
+                            yield val
+                            continue
+                        break
+                    cur, last_val = next_cur, val
+                    continue
+
                 except PlannerFailure as f:
                     if f.target is not None:
                         self._prog_close_all(forks)
                         raise
-                    next_cur, val, status = self._prog_step_back(forks, labels)
-                    if status is ProgStepStatus.EXHAUSTED:
-                        return
-                    if status is ProgStepStatus.RETURN:
-                        yield val
-                        return
+                    while True:
+                        next_cur, val, status = self._prog_step_back(forks, labels)
+                        if status == ProgStepStatus.EXHAUSTED:
+                            # Окажется тут, если не сможем продолжить ни одну "ветку"
+                            # Неявно вызовем EXHAUSTED всей prog
+                            return
+                        if status == ProgStepStatus.RETURN:
+                            yield val
+                            # Вернемся на предыдущую F-точку
+                            continue
+                        break
                     cur, last_val = next_cur, val
                     continue
-
+                    
+                # Добавляем "метку" (или F-точку), к которой вернемся по FAIL
                 forks.append((cur, gen))
                 last_val = val
                 cur += 1
@@ -333,29 +359,17 @@ class PlannerInterpreter:
                 return i + 1, val, ProgStepStatus.OK
             except StopIteration:
                 forks.pop()
-                try:
-                    gen.close()
-                except Exception:
-                    pass
             except GoSignal as go:
                 forks.pop()
-                try:
-                    gen.close()
-                except Exception:
-                    pass
                 if go.label in labels:
                     return labels[go.label], NIL, ProgStepStatus.GO
                 self._prog_close_all(forks)
                 raise
             except ReturnSignal as ret:
-                self._prog_close_all(forks)
+                forks.pop()
                 return -1, ret.value, ProgStepStatus.RETURN
             except PlannerFailure as f:
                 forks.pop()
-                try:
-                    gen.close()
-                except Exception:
-                    pass
                 if f.target is not None:
                     self._prog_close_all(forks)
                     raise
@@ -363,60 +377,7 @@ class PlannerInterpreter:
 
     def _prog_close_all(self, forks: list[tuple[int, Iterator[Value]]]) -> None:
         while forks:
-            _, gen = forks.pop()
-            try:
-                gen.close()
-            except Exception:
-                pass
-
-    def _call_user_function(
-        self, fn: PlannerFunction, raw_args: list[FormNode]
-    ) -> Value:
-        if isinstance(fn.params, SimpleParam):
-            # LAMBDA I или LAMBDA *I
-            if fn.params.unevaluated:
-                # *I: все аргументы НЕ вычисляются; передаём список AST-узлов
-                # (интерпретатор может поже применить EVAL к каждому)
-                bound_val: Value = PlannerList(
-                    elements=list(raw_args),
-                    kind=BracketKind.ROUND,
-                )
-            else:
-                # I: все аргументы вычисляются и собираются в L-список
-                bound_val = PlannerList(
-                    elements=[self.eval_form(a) for a in raw_args],
-                    kind=BracketKind.ROUND,
-                )
-            declared = [fn.params.name]
-            bindings = {fn.params.name: bound_val}
-
-        elif isinstance(fn.params, ListParams):
-            # LAMBDA (v1 v2 ...): позиционные параметры
-            if len(fn.params.params) != len(raw_args):
-                raise PlannerRuntimeError(
-                    f"Функция '{fn.name}': ожидалось "
-                    f"{len(fn.params.params)} аргументов, "
-                    f"получено {len(raw_args)}"
-                )
-            declared = [name for name, _ in fn.params.params]
-            bindings = {}
-            for (pname, unevaluated), arg_node in zip(fn.params.params, raw_args):
-                if unevaluated:
-                    bindings[pname] = arg_node
-                else:
-                    bindings[pname] = self.eval_form(arg_node)
-        else:
-            raise PlannerRuntimeError("Неверная спецификация параметров")
-
-        self.env.push_frame(declared, bindings)
-        try:
-            return self.eval_form(fn.body)
-        except GoSignal as go:
-            raise PlannerRuntimeError(
-                f"GO: метка '{go.label}' не определена (выход за границу LAMBDA)"
-            )
-        finally:
-            self.env.pop_frame()
+            forks.pop()
 
     def _call_user_function_bt(
         self, fn: PlannerFunction, raw_args: list[FormNode]
@@ -453,7 +414,14 @@ class PlannerInterpreter:
 
         self.env.push_frame(declared, bindings)
         try:
-            yield from self.eval_form_bt(fn.body)
+            for val in self.eval_form_bt(fn.body):
+                # Снимаем фрейм перед yield чтобы параллельные вычисления
+                # аргументов не читали переменные из нашего фрейма
+                frame = self.env._frames.pop()
+                try:
+                    yield val
+                finally:
+                    self.env._frames.append(frame)
         except GoSignal as go:
             raise PlannerRuntimeError(
                 f"GO: метка '{go.label}' не определена (выход за границу LAMBDA)"
@@ -474,7 +442,7 @@ class PlannerInterpreter:
                         lambda f=frame, n=name: f.bindings.pop(n, None)
                     )
                 return
-        # Переменная нигде не описана — set_local тоже упадёт; no-op для баланса трейла.
+        # Переменная нигде не описана
         self._trail.push_undo(lambda: None)
 
     def _record_undo_constant(self, name: str) -> None:

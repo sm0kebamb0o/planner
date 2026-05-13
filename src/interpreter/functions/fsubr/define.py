@@ -1,7 +1,7 @@
 from src.interpreter.functions.spec import PlannerFunction, SimpleParam, ListParams
 from src.interpreter.functions import codec
 from src.interpreter.values import Value, PlannerList, BracketKind
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 from src.parser.ast.nodes import IdentNode, LListNode
 
 

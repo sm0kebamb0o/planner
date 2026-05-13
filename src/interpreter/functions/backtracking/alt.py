@@ -1,5 +1,6 @@
 from src.interpreter.functions.backtracking.utils import _tracked_gen
-from src.interpreter.signals import PlannerFailure, PlannerRuntimeError
+from src.interpreter.signals import PlannerFailure
+from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.values import NIL
 
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from src.interpreter.signals import PlannerRuntimeError
+from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.values import Value
 
 
