@@ -1,13 +1,3 @@
-"""
-Тесты интерпретатора языка Плэннер.
-
-Запуск:
-    cd /Users/mt1mur/Documents/CMC/planner
-    python -m pytest src/interpreter/test/test_interpreter.py -v
-    # или напрямую:
-    python src/interpreter/test/test_interpreter.py
-"""
-
 import io
 import sys
 import unittest

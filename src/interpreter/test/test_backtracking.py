@@ -1,10 +1,3 @@
-"""Тесты IS, сопоставителей и режима возвратов.
-
-Запуск:
-    cd /Users/mt1mur/Documents/CMC/planner
-    python -m pytest src/interpreter/test/test_backtracking.py -v
-"""
-
 import io
 import sys
 import unittest

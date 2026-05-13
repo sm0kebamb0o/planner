@@ -1,13 +1,3 @@
-"""
-Тесты лексического анализатора языка Плэннер.
-
-Запуск:
-    cd /Users/mt1mur/Documents/CMC/planner
-    python -m pytest src/lexer/test/test_lexer.py -v
-    # или напрямую:
-    python src/lexer/test/test_lexer.py
-"""
-
 import unittest
 
 from src.lexer import Lexer, LexerError

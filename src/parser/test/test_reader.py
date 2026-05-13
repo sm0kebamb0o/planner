@@ -1,13 +1,3 @@
-"""
-Тесты синтаксического анализатора языка Плэннер (PlannerParser).
-
-Запуск:
-    cd /Users/mt1mur/Documents/CMC/planner
-    python -m pytest src/parser/test/test_reader.py -v
-    # или напрямую:
-    python src/parser/test/test_reader.py
-"""
-
 import os
 import tempfile
 import unittest
