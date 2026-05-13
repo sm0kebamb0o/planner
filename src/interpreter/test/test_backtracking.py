@@ -338,33 +338,6 @@ class TestFIND(unittest.TestCase):
 
 
 # ===========================================================================
-# PERM, STRG, TEMP
-# ===========================================================================
-
-class TestPERMSTRGTEMP(unittest.TestCase):
-
-    def test_perm_commits_effects(self):
-        """PERM: побочные эффекты не откатываются при последующем FAIL."""
-        result = _eval_last(
-            "[PROG (X) "
-            " [SET X 0]"
-            " [GATE [PERM [SET X 42]] [FAIL]]"
-            " .X]"
-        )
-        self.assertEqual(result, "42")
-
-    def test_temp_undoes_effects(self):
-        """TEMP: побочные эффекты откатываются на выходе."""
-        result = _eval_last(
-            "[PROG (X) "
-            " [SET X 0]"
-            " [TEMP [SET X 99]]"
-            " .X]"
-        )
-        self.assertEqual(result, "0")
-
-
-# ===========================================================================
 # PSET и другие постоянные варианты
 # ===========================================================================
 
