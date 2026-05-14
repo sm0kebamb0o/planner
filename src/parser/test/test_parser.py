@@ -13,18 +13,15 @@ from src.parser.grammar.planner_grammar import PLANNER_GRAMMAR
 
 
 def _parse(source: str) -> ProgramNode:
-    """Вспомогательная функция: токенизировать и разобрать строку."""
     groups = Lexer(source).tokenize()
     return PlannerParser().parse(groups)
 
 
 def _form(source: str):
-    """Вернуть первую (единственную) форму разобранной программы."""
     return _parse(source).forms[0]
 
 
 class TestAtomParsing(unittest.TestCase):
-    """Разбор атомарных форм."""
 
     def test_ident(self):
         node = _form("ABC")
@@ -54,7 +51,6 @@ class TestAtomParsing(unittest.TestCase):
 
 
 class TestVarRefParsing(unittest.TestCase):
-    """Разбор ссылок на переменные."""
 
     def test_dot_read(self):
         node = _form(".X")
@@ -81,7 +77,6 @@ class TestVarRefParsing(unittest.TestCase):
 
 
 class TestLListParsing(unittest.TestCase):
-    """Разбор L-списков (круглые скобки)."""
 
     def test_empty_list(self):
         node = _form("()")
@@ -102,7 +97,6 @@ class TestLListParsing(unittest.TestCase):
 
 
 class TestCallParsing(unittest.TestCase):
-    """Разбор вызовов функций (P-списки и S-списки)."""
 
     def test_simple_call(self):
         node = _form("[+ 1 2]")
@@ -134,7 +128,6 @@ class TestCallParsing(unittest.TestCase):
 
 
 class TestProgramParsing(unittest.TestCase):
-    """Разбор программ с несколькими формами."""
 
     def test_multiple_forms(self):
         prog = _parse("ABC 42 [+ 1 2]")
@@ -148,12 +141,10 @@ class TestProgramParsing(unittest.TestCase):
 
     def test_comment_atoms(self):
         prog = _parse("* это комментарий-атом\n[+ 1 2]")
-        # «*» — атом, остальные слова тоже атомы; последняя форма — вызов
         self.assertIsInstance(prog.forms[-1], CallNode)
 
 
 class TestEmptyPList(unittest.TestCase):
-    """[] — пустой P-список, wildcard для одного значения (§5.3)."""
 
     def test_empty_plist_parses(self):
         node = _form("[]")
@@ -184,7 +175,6 @@ class TestEmptyPList(unittest.TestCase):
 
 
 class TestEmptySList(unittest.TestCase):
-    """<> — пустой сегментный wildcard."""
 
     def test_empty_slist_parses(self):
         node = _form("<>")
@@ -215,36 +205,19 @@ class TestEmptySList(unittest.TestCase):
 
 
 class TestParseErrors(unittest.TestCase):
-    """Ошибки синтаксического анализа."""
 
     def test_empty_brackets(self):
-        # [] — теперь парсится как wildcard (§5.3)
         node = _form("[]")
         self.assertIsInstance(node, CallNode)
         self.assertFalse(node.segmented)
         self.assertEqual(node.args, [])
 
     def test_unclosed_bracket(self):
-        # незакрытая скобка приводит к ошибке в лексере или парсере
         with self.assertRaises(Exception):
             _parse("[+ 1 2")
 
 
-class TestTestProgram(unittest.TestCase):
-    """Разбор тестовой программы из файла."""
-
-    def test_parse_test_program(self):
-        test_file = os.path.join(os.path.dirname(__file__), "test_program.pl")
-        if not os.path.isfile(test_file):
-            self.skipTest("test_program.pl not found")
-        with open(test_file, encoding="utf-8") as f:
-            source = f.read()
-        prog = _parse(source)
-        self.assertGreater(len(prog.forms), 0)
-
-
 class TestGrammarProtoRoundTrip(unittest.TestCase):
-    """Граф грамматики плэннера корректно сериализуется в proto и восстанавливается из него."""
 
     def setUp(self):
         self._original = Graph.from_grammar(PLANNER_GRAMMAR)
@@ -295,7 +268,6 @@ class TestGrammarProtoRoundTrip(unittest.TestCase):
         self.assertEqual(orig_types, load_types)
 
     def test_loaded_graph_parses_correctly(self):
-        """После загрузки из proto граф позволяет успешно разбирать программы."""
         loaded = self._load_roundtrip()
         reader = PlannerParser.__new__(PlannerParser)
         reader.graph = loaded

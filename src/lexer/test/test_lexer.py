@@ -4,18 +4,15 @@ from src.lexer import Lexer, LexerError
 
 
 def _flat(source: str) -> list[tuple[str, str]]:
-    """Токенизировать строку и вернуть плоский список (тип, значение)."""
     groups = Lexer(source).tokenize()
     return [(t.type.name, t.value) for g in groups for t in g]
 
 
 def _groups(source: str) -> list[list[tuple[str, str]]]:
-    """Токенизировать строку и вернуть список групп (тип, значение)."""
     return [[(t.type.name, t.value) for t in g] for g in Lexer(source).tokenize()]
 
 
 class TestAtoms(unittest.TestCase):
-    """Атомарные токены: IDENT, INT, FLOAT, SCALE."""
 
     def test_ident_simple(self):
         self.assertEqual(_flat("ABC"), [("IDENT", "ABC")])
@@ -54,7 +51,6 @@ class TestAtoms(unittest.TestCase):
 
 
 class TestBrackets(unittest.TestCase):
-    """Скобки всех трёх видов."""
 
     def test_round(self):
         result = _flat("(A)")
@@ -73,7 +69,6 @@ class TestBrackets(unittest.TestCase):
 
 
 class TestVarRef(unittest.TestCase):
-    """Ссылки на переменные: DOT, STAR, COLON и их ! варианты."""
 
     def test_dot_read(self):
         self.assertEqual(_flat(".X"), [("DOT", "."), ("IDENT", "X")])
@@ -98,7 +93,6 @@ class TestVarRef(unittest.TestCase):
 
 
 class TestSplitIntoForms(unittest.TestCase):
-    """Разбивка токенов на формы верхнего уровня."""
 
     def test_single_atom(self):
         groups = _groups("ABC")
@@ -143,7 +137,6 @@ class TestSplitIntoForms(unittest.TestCase):
 
 
 class TestLineNumbers(unittest.TestCase):
-    """Позиции токенов (строка, столбец)."""
 
     def test_line_number(self):
         groups = Lexer("ABC\nDEF").tokenize()

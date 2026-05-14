@@ -1,14 +1,14 @@
 import io
 import sys
+import textwrap
 import unittest
 
-from src.interpreter import PlannerInterpreter, PlannerRuntimeError, PlannerList
+from src.interpreter import PlannerInterpreter, PlannerRuntimeError
 from src.lexer import Lexer
 from src.parser import PlannerParser
 
 
 def _run(source: str) -> str:
-    """Выполнить программу и вернуть захваченный stdout."""
     groups = Lexer(source).tokenize()
     prog   = PlannerParser().parse(groups)
     buf    = io.StringIO()
@@ -22,13 +22,11 @@ def _run(source: str) -> str:
 
 
 def _eval(source: str) -> str:
-    """Выполнить одиночную форму и вернуть последнюю строку вывода (значение)."""
     lines = _run(source).strip().splitlines()
     return lines[-1] if lines else ""
 
 
 class TestArithmetic(unittest.TestCase):
-    """Арифметические операции."""
 
     def test_addition(self):
         self.assertEqual(_eval("[+ 2 3]"), "5")
@@ -53,7 +51,6 @@ class TestArithmetic(unittest.TestCase):
 
 
 class TestListOperations(unittest.TestCase):
-    """Операции над списками."""
 
     def test_length(self):
         self.assertEqual(_eval("[LENGTH (A B C D)]"), "4")
@@ -77,7 +74,6 @@ class TestListOperations(unittest.TestCase):
 
 
 class TestPredicates(unittest.TestCase):
-    """Предикаты: NUM, ATOM, LIST, EMPTY, EQ."""
 
     def test_num_true(self):
         self.assertEqual(_eval("[NUM 42]"), "T")
@@ -99,12 +95,10 @@ class TestPredicates(unittest.TestCase):
 
 
 class TestVariables(unittest.TestCase):
-    """Переменные и константы."""
 
     def test_cset_and_read(self):
         output = _run("[CSET PI 3.14159]\n:PI")
         lines = output.strip().splitlines()
-        # Последняя строка вывода — значение :PI
         self.assertIn("3.14159", lines[-1])
 
     def test_prog_set(self):
@@ -116,7 +110,6 @@ class TestVariables(unittest.TestCase):
 
 
 class TestConditional(unittest.TestCase):
-    """Условные выражения COND."""
 
     def test_true_clause(self):
         result = _eval("[COND (() первая-ложна) (T нашли-истину)]")
@@ -132,33 +125,33 @@ class TestConditional(unittest.TestCase):
 
 
 class TestFunctions(unittest.TestCase):
-    """Пользовательские функции (DEFINE, LAMBDA)."""
 
     def test_square(self):
         self.assertEqual(_eval("[DEFINE SQUARE (LAMBDA (N) [× .N .N])]\n[SQUARE 7]"), "49")
 
     def test_factorial(self):
-        src = """
-        [DEFINE FACT (LAMBDA (N)
-          [COND ([LE .N 1] 1)
-                (T [× .N [FACT [- .N 1]]])])]
-        [FACT 5]
-        """
+        src = textwrap.dedent("""
+            [DEFINE FACT (LAMBDA (N)
+            [COND ([LE .N 1] 1)
+                    (T [× .N [FACT [- .N 1]]])])]
+            [FACT 5]
+            """
+        )
         self.assertEqual(_eval(src), "120")
 
     def test_recursive_member(self):
-        src = """
-        [DEFINE MEMBER (LAMBDA (A L)
-            [COND ([EQ .L ()] ())
-                  ([EQ .A [ELEM 1 .L]] T)
-                  (T [MEMBER .A [REST 1 .L]])])]
-        [MEMBER 2 (1 2 3)]
-        """
+        src = textwrap.dedent("""
+            [DEFINE MEMBER (LAMBDA (A L)
+                [COND ([EQ .L ()] ())
+                    ([EQ .A [ELEM 1 .L]] T)
+                    (T [MEMBER .A [REST 1 .L]])])]
+            [MEMBER 2 (1 2 3)]
+            """
+        )
         self.assertEqual(_eval(src), "T")
 
 
 class TestLoops(unittest.TestCase):
-    """Циклы (FOR, WHILE)."""
 
     def test_for_sum(self):
         src = "[PROG (S) [SET S 0] [FOR I 5 [SET S [+ .S .I]]] .S]"
@@ -166,7 +159,6 @@ class TestLoops(unittest.TestCase):
 
 
 class TestSegmented(unittest.TestCase):
-    """Сегментированные вызовы."""
 
     def test_slist(self):
         result = _eval("<REST 1 (A B C D)>")
@@ -174,7 +166,6 @@ class TestSegmented(unittest.TestCase):
 
 
 class TestRuntimeErrors(unittest.TestCase):
-    """Ошибки времени выполнения."""
 
     def test_unbound_variable(self):
         with self.assertRaises(PlannerRuntimeError):

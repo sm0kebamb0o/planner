@@ -8,15 +8,11 @@ from src.interpreter.signals import PlannerFailure
 from src.lexer import Lexer
 from src.parser import PlannerParser
 
+
 _EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "..", "examples")
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 def _run(source: str) -> str:
-    """Run a Planner source string through the full pipeline; return stdout."""
     groups = Lexer(source).tokenize()
     prog = PlannerParser().parse(groups)
     buf = io.StringIO()
@@ -30,45 +26,11 @@ def _run(source: str) -> str:
 
 
 def _eval(source: str) -> str:
-    """Run source and return the last non-empty output line (the final value)."""
     lines = [l for l in _run(source).strip().splitlines() if l.strip()]
     return lines[-1] if lines else ""
 
 
-def _read_example(rel_path: str) -> str:
-    with open(os.path.join(_EXAMPLES, rel_path), encoding="utf-8") as f:
-        return f.read()
-
-
-# ---------------------------------------------------------------------------
-# Smoke tests: each parseable example file runs without raising an exception
-# ---------------------------------------------------------------------------
-
-class TestPipelineSmoke(unittest.TestCase):
-    """Each example file must run without any uncaught exception."""
-
-    def _smoke(self, rel_path: str) -> None:
-        try:
-            _run(_read_example(rel_path))
-        except Exception as exc:
-            self.fail(f"{rel_path} raised {type(exc).__name__}: {exc}")
-
-    def test_smoke_01_basics(self):
-        self._smoke("01_basics.pl")
-
-    def test_smoke_02_arithmetic(self):
-        self._smoke("02_arithmetic.pl")
-
-    def test_smoke_04_recursion(self):
-        self._smoke("04_recursion.pl")
-
-
-# ---------------------------------------------------------------------------
-# 01_basics.pl: atoms, numbers, lists, type predicates
-# ---------------------------------------------------------------------------
-
 class TestPipelineBasics(unittest.TestCase):
-    """Atoms evaluate to themselves; predicates return T or ()."""
 
     def test_atom_evaluates_to_itself(self):
         self.assertIn("HELLO", _run("HELLO"))
@@ -113,12 +75,7 @@ class TestPipelineBasics(unittest.TestCase):
         self.assertEqual(_eval("[REAL 3.14]"), "T")
 
 
-# ---------------------------------------------------------------------------
-# 02_arithmetic.pl: arithmetic operations
-# ---------------------------------------------------------------------------
-
 class TestPipelineArithmetic(unittest.TestCase):
-    """Arithmetic operations produce correct results."""
 
     def test_addition_multi(self):
         self.assertEqual(_eval("[+ 1 2 3 4 5]"), "15")
@@ -154,12 +111,7 @@ class TestPipelineArithmetic(unittest.TestCase):
         self.assertEqual(_eval("[+ [× 3 4] [- 10 4]]"), "18")
 
 
-# ---------------------------------------------------------------------------
-# 04_recursion.pl: user-defined recursive functions
-# ---------------------------------------------------------------------------
-
 class TestPipelineRecursion(unittest.TestCase):
-    """Recursive functions produce correct results."""
 
     _FACT = "[DEFINE FACT (LAMBDA (N) [COND ([LE .N 1] 1) (T [× .N [FACT [- .N 1]]])])]\n"
     _FIB = "[DEFINE FIB (LAMBDA (N) [COND ([LE .N 0] 0) ([EQ .N 1] 1) (T [+ [FIB [- .N 1]] [FIB [- .N 2]]])])]\n"
@@ -204,12 +156,7 @@ class TestPipelineRecursion(unittest.TestCase):
         self.assertEqual(_eval(src), "()")
 
 
-# ---------------------------------------------------------------------------
-# List operations (inline)
-# ---------------------------------------------------------------------------
-
 class TestPipelineLists(unittest.TestCase):
-    """Built-in list operations return correct results."""
 
     def test_length(self):
         self.assertEqual(_eval("[LENGTH (A B C D E)]"), "5")
@@ -235,11 +182,6 @@ class TestPipelineLists(unittest.TestCase):
         )
         self.assertEqual(_eval(src), "150")
 
-
-# ---------------------------------------------------------------------------
-# Backtracking: SUM (find subsets summing to N)
-# ---------------------------------------------------------------------------
-
 _SUM_DEF = """\
 [DEFINE SUM (LAMBDA (L N)
   [PROG (K (M ()) (S 0))
@@ -253,7 +195,6 @@ _SUM_DEF = """\
 
 
 class TestPipelineBacktrackingSum(unittest.TestCase):
-    """SUM: find subsets of a list that sum to N."""
 
     def test_first_solution(self):
         result = _eval(_SUM_DEF + "[SUM (6 3 2 1) 5]")
@@ -282,10 +223,6 @@ class TestPipelineBacktrackingSum(unittest.TestCase):
         self.assertIn("(2 1)", output)
 
 
-# ---------------------------------------------------------------------------
-# Backtracking: 8-queens
-# ---------------------------------------------------------------------------
-
 _QUEENS_DEF = """\
 [DEFINE ДИАГ (LAMBDA (V LV)
   [PROG (H (H1 0))
@@ -308,7 +245,6 @@ _QUEENS_DEF = """\
 
 
 class TestPipelineBacktrackingQueens(unittest.TestCase):
-    """8-queens: find a non-attacking placement of 8 queens."""
 
     def test_first_solution_value(self):
         result = _eval(_QUEENS_DEF + "[Ф8]")

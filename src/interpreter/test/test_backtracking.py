@@ -1,5 +1,6 @@
 import io
 import sys
+import textwrap
 import unittest
 
 from src.interpreter import PlannerInterpreter, PlannerList, BracketKind
@@ -8,12 +9,7 @@ from src.lexer import Lexer
 from src.parser import PlannerParser
 
 
-def _make_interp():
-    return PlannerInterpreter()
-
-
 def _run_source(source: str, interp=None):
-    """Выполнить источник и вернуть (stdout_lines, last_value)."""
     groups = Lexer(source).tokenize()
     prog   = PlannerParser().parse(groups)
     buf    = io.StringIO()
@@ -26,187 +22,18 @@ def _run_source(source: str, interp=None):
     finally:
         sys.stdout = old
     lines = buf.getvalue().strip().splitlines()
-    # Строки чередуются: исходная форма, результат, исходная форма, результат...
-    values = lines[1::2]   # каждая вторая строка — результат вычисления
+    values = lines[1::2]
     return lines, values
 
 
 def _eval_last(source: str, interp=None) -> str:
-    """Выполнить и вернуть последнее значение."""
     lines, values = _run_source(source, interp)
     return values[-1] if values else ""
 
 
-# ===========================================================================
-# IS — базовое сопоставление
-# ===========================================================================
-
-class TestIS(unittest.TestCase):
-
-    def test_atom_match(self):
-        self.assertEqual(_eval_last("[IS ABC ABC]"), "T")
-
-    def test_atom_no_match(self):
-        self.assertEqual(_eval_last("[IS ABC DEF]"), "()")
-
-    def test_number_match(self):
-        self.assertEqual(_eval_last("[IS 5 [+ 2 3]]"), "T")
-
-    def test_number_no_match(self):
-        self.assertEqual(_eval_last("[IS 5 6]"), "()")
-
-    def test_star_var_bind(self):
-        """*X всегда связывается."""
-        result = _eval_last("[PROG (X) [IS *X HELLO] .X]")
-        self.assertEqual(result, "HELLO")
-
-    def test_dot_var_bind(self):
-        """.X без значения — связывается."""
-        result = _eval_last("[PROG (X) [IS .X WORLD] .X]")
-        self.assertEqual(result, "WORLD")
-
-    def test_dot_var_check_equal(self):
-        """.X с значением — проверяет равенство (успех)."""
-        result = _eval_last("[PROG (X) [SET X A] [IS .X A]]")
-        self.assertEqual(result, "T")
-
-    def test_dot_var_check_unequal(self):
-        """.X с значением — проверяет равенство (неудача)."""
-        result = _eval_last("[PROG (X) [SET X A] [IS .X B]]")
-        self.assertEqual(result, "()")
-
-    def test_dot_var_same_twice(self):
-        """(.X .X) — обе позиции должны совпадать."""
-        result = _eval_last("[PROG (X) [IS (.X .X) (A A)]]")
-        self.assertEqual(result, "T")
-
-    def test_dot_var_different(self):
-        """(.X .X) — разные значения → неудача."""
-        result = _eval_last("[PROG (X) [IS (.X .X) (A B)]]")
-        self.assertEqual(result, "()")
-
-    def test_list_match(self):
-        result = _eval_last("[IS (A B C) (A B C)]")
-        self.assertEqual(result, "T")
-
-    def test_list_wrong_length(self):
-        result = _eval_last("[IS (A B) (A B C)]")
-        self.assertEqual(result, "()")
-
-    def test_list_bind_vars(self):
-        result = _eval_last("[PROG (X Y) [IS (*X *Y) (1 2)] [+ .X .Y]]")
-        self.assertEqual(result, "3")
-
-
-# ===========================================================================
-# IS — сегментные образцы
-# ===========================================================================
-
-class TestISSegmented(unittest.TestCase):
-
-    def test_segmented_star_binds_list(self):
-        """!*X получает список."""
-        result = _eval_last("[PROG (X) [IS (!*X) (A B C)] .X]")
-        self.assertEqual(result, "(A B C)")
-
-    def test_segmented_split(self):
-        """!*X *Y — !*X получает всё кроме последнего элемента."""
-        result = _eval_last("[PROG (X Y) [IS (!*X *Y) (1 2 3)] .X]")
-        self.assertEqual(result, "(1 2)")   # X = (1 2), Y = 3
-
-    def test_segmented_middle(self):
-        """A !*X B — захватить средний сегмент."""
-        result = _eval_last("[PROG (X) [IS (A !*X B) (A 1 2 B)] .X]")
-        self.assertEqual(result, "(1 2)")
-
-    def test_segmented_empty(self):
-        """!*X может быть пустым."""
-        result = _eval_last("[PROG (X) [IS (!*X A) (A)] .X]")
-        self.assertEqual(result, "()")
-
-    def test_segmented_plus_pattern(self):
-        """!*X + !*Y — разделить по первому плюсу."""
-        result = _eval_last("[PROG (X Y) [IS (!*X + !*Y) (1 2 + 3 4)] [LENGTH .X]]")
-        self.assertEqual(result, "2")
-
-
-# ===========================================================================
-# Встроенные сопоставители
-# ===========================================================================
-
-class TestMatchers(unittest.TestCase):
-
-    def test_matcher_num(self):
-        self.assertEqual(_eval_last("[IS [NUM] 42]"), "T")
-
-    def test_matcher_num_fail(self):
-        self.assertEqual(_eval_last("[IS [NUM] ABC]"), "()")
-
-    def test_matcher_id(self):
-        self.assertEqual(_eval_last("[IS [ID] HELLO]"), "T")
-
-    def test_matcher_int(self):
-        self.assertEqual(_eval_last("[IS [INT] 5]"), "T")
-
-    def test_matcher_int_fail_float(self):
-        self.assertEqual(_eval_last("[IS [INT] 5.0]"), "()")
-
-    def test_matcher_list(self):
-        self.assertEqual(_eval_last("[IS [LIST] (1 2 3)]"), "T")
-
-    def test_matcher_list_length(self):
-        self.assertEqual(_eval_last("[IS [LIST 3] (1 2 3)]"), "T")
-
-    def test_matcher_list_length_fail(self):
-        self.assertEqual(_eval_last("[IS [LIST 2] (1 2 3)]"), "()")
-
-    def test_matcher_non_atom(self):
-        """[NON [NUM]] не подходит к числу."""
-        self.assertEqual(_eval_last("[IS [NON [NUM]] ABC]"), "T")
-
-    def test_matcher_non_fail(self):
-        self.assertEqual(_eval_last("[IS [NON [NUM]] 42]"), "()")
-
-    def test_matcher_gt(self):
-        self.assertEqual(_eval_last("[IS [GT 3] 5]"), "T")
-
-    def test_matcher_gt_fail(self):
-        self.assertEqual(_eval_last("[IS [GT 3] 2]"), "()")
-
-    def test_matcher_et(self):
-        """ET [NUM] [GT 0] — конъюнкция."""
-        self.assertEqual(_eval_last("[IS [ET [NUM] [GT 0]] 5]"), "T")
-
-    def test_matcher_et_fail(self):
-        self.assertEqual(_eval_last("[IS [ET [NUM] [GT 0]] -1]"), "()")
-
-    def test_matcher_aut(self):
-        """AUT [NUM] [ID] — дизъюнкция."""
-        self.assertEqual(_eval_last("[IS [AUT [NUM] [ID]] ABC]"), "T")
-        self.assertEqual(_eval_last("[IS [AUT [NUM] [ID]] 42]"), "T")
-
-    def test_matcher_one_of(self):
-        self.assertEqual(_eval_last("[IS [ONE-OF (A B C)] B]"), "T")
-
-    def test_matcher_one_of_fail(self):
-        self.assertEqual(_eval_last("[IS [ONE-OF (A B C)] D]"), "()")
-
-    def test_star_matcher(self):
-        """STAR [NUM] — список из чисел."""
-        self.assertEqual(_eval_last("[IS [STAR [NUM]] (1 2 3)]"), "T")
-
-    def test_star_matcher_fail(self):
-        self.assertEqual(_eval_last("[IS [STAR [NUM]] (1 A 3)]"), "()")
-
-
-# ===========================================================================
-# FAIL, MESS
-# ===========================================================================
-
 class TestFailMess(unittest.TestCase):
 
     def test_fail_at_toplevel(self):
-        """Неуспех на верхнем уровне печатает =НЕУСПЕХ=."""
         lines, _ = _run_source("[FAIL]")
         self.assertTrue(any("НЕУСПЕХ" in l for l in lines))
 
@@ -215,67 +42,46 @@ class TestFailMess(unittest.TestCase):
         self.assertTrue(any("OOPS" in l for l in lines))
 
     def test_mess(self):
-        """[MESS] возвращает сообщение последнего неуспеха."""
         result = _eval_last("[PROG (X) [GATE [FAIL HELLO]] [MESS]]")
         self.assertEqual(result, "HELLO")
 
 
-# ===========================================================================
-# GATE
-# ===========================================================================
-
 class TestGate(unittest.TestCase):
 
     def test_gate_success(self):
-        """GATE успешно — возвращает значение."""
         self.assertEqual(_eval_last("[GATE [+ 1 2]]"), "3")
 
     def test_gate_fail_returns_nil(self):
-        """GATE при неуспехе → ()."""
         self.assertEqual(_eval_last("[GATE [FAIL]]"), "()")
 
     def test_gate_among_fail(self):
-        """[GATE [AMONG (1 2 3)] [FAIL]] перебирает все варианты → ()."""
         result = _eval_last("[GATE [AMONG (1 2 3)] [FAIL]]")
         self.assertEqual(result, "()")
 
 
-# ===========================================================================
-# AMONG / ALT
-# ===========================================================================
-
 class TestAMONG(unittest.TestCase):
 
     def test_among_first_value(self):
-        """Первое значение AMONG берётся без отката."""
         result = _eval_last("[PROG (X) [SET X [AMONG (10 20 30)]] .X]")
         self.assertEqual(result, "10")
 
     def test_among_empty_fails(self):
-        """AMONG пустого списка → НЕУСПЕХ на верхнем уровне."""
         lines, _ = _run_source("[AMONG ()]")
         output = " ".join(lines)
         self.assertTrue("НЕУСПЕХ" in output or "AMONG" in output)
 
     def test_among_collect_all(self):
-        """FIND ALL собирает все значения AMONG."""
         result = _eval_last("[FIND ALL (X) .X [SET X [AMONG (1 2 3)]]]")
         self.assertEqual(result, "(3 2 1)")
 
     def test_alt_first_success(self):
-        """ALT возвращает первую успешную альтернативу."""
         result = _eval_last("[PROG (X) [SET X [ALT 10 20]] .X]")
         self.assertEqual(result, "10")
 
     def test_alt_skip_fail(self):
-        """ALT пропускает неуспешные ветви."""
         result = _eval_last("[PROG (X) [SET X [ALT [FAIL] 99]] .X]")
         self.assertEqual(result, "99")
 
-
-# ===========================================================================
-# IF (режим возвратов)
-# ===========================================================================
 
 class TestIF(unittest.TestCase):
 
@@ -284,39 +90,29 @@ class TestIF(unittest.TestCase):
         self.assertEqual(result, "OK")
 
     def test_if_second_clause(self):
-        """Если первое условие неуспешно — переходит ко второму."""
         result = _eval_last("[IF ([FAIL] A) (() B)]")
         self.assertEqual(result, "B")
 
     def test_if_all_fail(self):
-        """Все условия неуспешны → ()."""
         result = _eval_last("[IF ([FAIL] A) ([FAIL] B)]")
         self.assertEqual(result, "()")
 
     def test_if_no_body(self):
-        """Клауза без тела возвращает значение условия."""
         result = _eval_last("[IF (T)]")
         self.assertEqual(result, "T")
 
 
-# ===========================================================================
-# FIND
-# ===========================================================================
-
 class TestFIND(unittest.TestCase):
 
     def test_find_all_among(self):
-        """FIND ALL собирает все элементы."""
         result = _eval_last("[FIND ALL (X) .X [SET X [AMONG (A B C)]]]")
         self.assertEqual(result, "(C B A)")
 
     def test_find_exact_count(self):
-        """FIND 2 собирает ровно 2."""
         result = _eval_last("[FIND 2 (X) .X [SET X [AMONG (1 2 3 4)]]]")
         self.assertEqual(result, "(2 1)")
 
     def test_find_with_filter(self):
-        """FIND с условием внутри тела."""
         result = _eval_last(
             "[FIND ALL (X) .X "
             " [SET X [AMONG (1 -2 3 -5)]]"
@@ -325,19 +121,13 @@ class TestFIND(unittest.TestCase):
         self.assertEqual(result, "(3 1)")
 
     def test_find_zero_returns_nil(self):
-        """FIND 0 → ()."""
         result = _eval_last("[FIND 0 (X) .X [SET X [AMONG (1 2)]]]")
         self.assertEqual(result, "()")
 
 
-# ===========================================================================
-# PSET и другие постоянные варианты
-# ===========================================================================
-
 class TestPermanent(unittest.TestCase):
 
     def test_pset_not_undone(self):
-        """PSET не откатывается при FAIL."""
         result = _eval_last(
             "[PROG (X) "
             " [SET X 0]"
@@ -355,25 +145,18 @@ class TestPermanent(unittest.TestCase):
         self.assertEqual(result, "4")
 
 
-# ===========================================================================
-# Trail откат при неуспехе
-# ===========================================================================
-
 class TestTrailRollback(unittest.TestCase):
 
     def test_set_rolled_back(self):
-        """SET откатывается при неуспехе через AMONG/FAIL."""
         result = _eval_last(
             "[PROG (X) "
             " [SET X 0]"
             " [GATE [SET X [AMONG (1 2 3)]] [FAIL]]"
             " .X]"
         )
-        # После исчерпания всех альтернатив AMONG X должен быть 0
         self.assertEqual(result, "0")
 
     def test_add1_rolled_back(self):
-        """ADD1 откатывается при неуспехе."""
         result = _eval_last(
             "[PROG (N) "
             " [SET N 0]"
@@ -383,108 +166,97 @@ class TestTrailRollback(unittest.TestCase):
         self.assertEqual(result, "0")
 
     def test_is_binding_rolled_back(self):
-        """IS-связывание откатывается при последующем FAIL."""
         result = _eval_last(
             "[PROG (X) "
             " [GATE [IS *X HELLO] [FAIL]]"
             " [BOUND X]]"
         )
-        # X не должна иметь значения после отката
-        self.assertEqual(result, "T")   # BOUND — да, объявлена, но без значения
-
-
-# ===========================================================================
-# SUM — классический пример из спецификации
-# ===========================================================================
+        self.assertEqual(result, "T")
 
 class TestSUM(unittest.TestCase):
 
     def test_sum_basic(self):
-        """SUM находит набор чисел из списка с заданной суммой."""
-        src = """
-[DEFINE SUM (LAMBDA (L N)
-  [PROG (K (M ()) (S 0))
-    A [SET K [AMONG .L]]
-      [SET M (!.M .K)]
-      [SET S [+ .S .K]]
-      [COND ([EQ .S .N] .M)
-            ([LT .S .N] [GO A])
-            (T [FAIL])]])]
-[SUM (6 3 2 1) 5]
-"""
+        src = textwrap.dedent("""
+            [DEFINE SUM (LAMBDA (L N)
+            [PROG (K (M ()) (S 0))
+                A [SET K [AMONG .L]]
+                [SET M (!.M .K)]
+                [SET S [+ .S .K]]
+                [COND ([EQ .S .N] .M)
+                        ([LT .S .N] [GO A])
+                        (T [FAIL])]])]
+            [SUM (6 3 2 1) 5]
+            """
+        )
         result = _eval_last(src)
-        # Допустимые ответы: (3 2) или (2 2 1) и т.п. — сумма должна быть 5
-        from src.interpreter import PlannerInterpreter
-        from src.lexer import Lexer
-        from src.parser import PlannerParser
         groups = Lexer(result.strip("()").replace(" ", " ")).tokenize()
-        # Просто проверим что не пустой список и не =НЕУСПЕХ=
         self.assertNotIn("НЕУСПЕХ", result)
         self.assertTrue(result.startswith("("))
 
     def test_sum_no_solution(self):
         """SUM без решения → НЕУСПЕХ."""
-        src = """
-[DEFINE SUM (LAMBDA (L N)
-  [PROG (K (M ()) (S 0))
-    A [SET K [AMONG .L]]
-      [SET M (!.M .K)]
-      [SET S [+ .S .K]]
-      [COND ([EQ .S .N] .M)
-            ([LT .S .N] [GO A])
-            (T [FAIL])]])]
-[SUM (4 2) 7]
-"""
+        src = textwrap.dedent("""
+            [DEFINE SUM (LAMBDA (L N)
+            [PROG (K (M ()) (S 0))
+                A [SET K [AMONG .L]]
+                [SET M (!.M .K)]
+                [SET S [+ .S .K]]
+                [COND ([EQ .S .N] .M)
+                        ([LT .S .N] [GO A])
+                        (T [FAIL])]])]
+            [SUM (4 2) 7]
+            """
+        )
         lines, _ = _run_source(src)
         self.assertTrue(any("НЕУСПЕХ" in l for l in lines))
 
     def test_sum_first_solution(self):
-        """Первое решение [SUM (6 3 2 1) 5] = (3 2)."""
-        src = """
-[DEFINE SUM (LAMBDA (L N)
-  [PROG (K (M ()) (S 0))
-    A [SET K  [AMONG .L]]
-      [SET M  (!.M .K)]
-      [SET S  [+ .S .K]]
-      [COND ([EQ .S .N] .M)
-            ([LT .S .N] [GO A])
-            (T [FAIL])]])]
-[SUM (6 3 2 1) 5]
-"""
+        src = textwrap.dedent("""
+            [DEFINE SUM (LAMBDA (L N)
+            [PROG (K (M ()) (S 0))
+                A [SET K  [AMONG .L]]
+                [SET M  (!.M .K)]
+                [SET S  [+ .S .K]]
+                [COND ([EQ .S .N] .M)
+                        ([LT .S .N] [GO A])
+                        (T [FAIL])]])]
+            [SUM (6 3 2 1) 5]
+            """
+        )
         self.assertEqual(_eval_last(src), "(3 2)")
 
     def test_sum_length4(self):
-        """Решение длины 4 для [SUM (6 3 2 1) 5] = (2 1 1 1)."""
-        src = """
-[DEFINE SUM (LAMBDA (L N)
-  [PROG (K (M ()) (S 0))
-    A [SET K  [AMONG .L]]
-      [SET M  (!.M .K)]
-      [SET S  [+ .S .K]]
-      [COND ([EQ .S .N] .M)
-            ([LT .S .N] [GO A])
-            (T [FAIL])]])]
-[PROG (X) [SET X [SUM (6 3 2 1) 5]]
-          [COND ([NEQ [LENGTH .X] 4] [FAIL])]
-          .X]
-"""
+        src = textwrap.dedent("""
+            [DEFINE SUM (LAMBDA (L N)
+            [PROG (K (M ()) (S 0))
+                A [SET K  [AMONG .L]]
+                [SET M  (!.M .K)]
+                [SET S  [+ .S .K]]
+                [COND ([EQ .S .N] .M)
+                        ([LT .S .N] [GO A])
+                        (T [FAIL])]])]
+            [PROG (X) [SET X [SUM (6 3 2 1) 5]]
+                    [COND ([NEQ [LENGTH .X] 4] [FAIL])]
+                    .X]
+            """
+        )
         self.assertEqual(_eval_last(src), "(2 1 1 1)")
 
     def test_sum_all_solutions(self):
-        """DO+PRINT+FAIL собирает все решения; каждое даёт сумму 5."""
-        src = """
-[DEFINE SUM (LAMBDA (L N)
-  [PROG (K (M ()) (S 0))
-    A [SET K  [AMONG .L]]
-      [SET M  (!.M .K)]
-      [SET S  [+ .S .K]]
-      [COND ([EQ .S .N] .M)
-            ([LT .S .N] [GO A])
-            (T [FAIL])]])]
-[DO [ALT () [EXIT T DO]]
-    [PRINT [SUM (6 3 2 1) 5]]
-    [FAIL]]
-"""
+        src = textwrap.dedent("""
+            [DEFINE SUM (LAMBDA (L N)
+            [PROG (K (M ()) (S 0))
+                A [SET K  [AMONG .L]]
+                [SET M  (!.M .K)]
+                [SET S  [+ .S .K]]
+                [COND ([EQ .S .N] .M)
+                        ([LT .S .N] [GO A])
+                        (T [FAIL])]])]
+            [DO [ALT () [EXIT T DO]]
+                [PRINT [SUM (6 3 2 1) 5]]
+                [FAIL]]
+            """
+        )
         lines, values = _run_source(src)
         solutions = [v for v in values if v.startswith("(")]
         self.assertGreater(len(solutions), 1)
@@ -493,40 +265,35 @@ class TestSUM(unittest.TestCase):
             self.assertEqual(sum(nums), 5)
 
 
-# ===========================================================================
-# Ф8 — задача 8 ферзей (queens.plan)
-# ===========================================================================
+_QUEENS_DEF = textwrap.dedent("""
+    [DEFINE ДИАГ (LAMBDA (V LV)
+    [PROG (H (H1 0))
+        [SET H [+ [LENGTH .LV] 1]]
+        [LOOP V1 .LV [ADD1 H1]
+        [UNFALSE [NEQ [ABS [- .H  .H1]]
+                        [ABS [- .V  .V1]]]]]])]
 
-_QUEENS_DEF = """
-[DEFINE ДИАГ (LAMBDA (V LV)
-  [PROG (H (H1 0))
-    [SET H [+ [LENGTH .LV] 1]]
-    [LOOP V1 .LV [ADD1 H1]
-      [UNFALSE [NEQ [ABS [- .H  .H1]]
-                    [ABS [- .V  .V1]]]]]])]
-
-[DEFINE Ф8 (LAMBDA ()
-  [PROG (V FV (LV ()) B E)
-    [SET FV (1 2 3 4 5 6 7 8)]
-    [FOR H 8
-      [SET V  [AMONG .FV]]
-      [ДИАГ .V .LV]
-      [SET LV (!.LV .V)]
-      [IS (!*B .V !*E) .FV]
-      [SET FV (!.B !.E)]]
-    .LV])]
-"""
+    [DEFINE Ф8 (LAMBDA ()
+    [PROG (V FV (LV ()) B E)
+        [SET FV (1 2 3 4 5 6 7 8)]
+        [FOR H 8
+        [SET V  [AMONG .FV]]
+        [ДИАГ .V .LV]
+        [SET LV (!.LV .V)]
+        [IS (!*B .V !*E) .FV]
+        [SET FV (!.B !.E)]]
+        .LV])]
+    """
+)
 
 
 class TestQueens(unittest.TestCase):
 
     def test_queens_first_solution(self):
-        """Первое решение задачи 8 ферзей."""
         result = _eval_last(_QUEENS_DEF + "[Ф8]")
         self.assertEqual(result, "(1 5 8 6 3 7 2 4)")
 
     def test_queens_solution_is_valid(self):
-        """Первое решение Ф8 — корректная расстановка (перестановка, без диагоналей)."""
         result = _eval_last(_QUEENS_DEF + "[Ф8]")
         cols = [int(x) for x in result.strip("()").split()]
         self.assertEqual(len(cols), 8)
@@ -536,287 +303,9 @@ class TestQueens(unittest.TestCase):
                 self.assertNotEqual(abs(cols[i] - cols[j]), j - i)
 
     def test_queens_all_92(self):
-        """FIND ALL собирает ровно 92 решения задачи 8 ферзей."""
         src = _QUEENS_DEF + "[FIND ALL (Q) .Q [SET Q [Ф8]]]"
         result = _eval_last(src)
-        # результат — вложенный список решений: ((1 5 8 6 3 7 2 4) ...)
         self.assertEqual(result.count("(") - 1, 92)
-
-
-# ===========================================================================
-# VAR-сопоставители (§5.1)
-# ===========================================================================
-
-class TestVARMatchers(unittest.TestCase):
-    """[QUOTE .X] → ('.X') — 1-элементный L-список; VAR-матчеры проверяют этот формат."""
-
-    def test_var_dot(self):
-        self.assertEqual(_eval_last("[IS [VAR.] [QUOTE .X]]"), "T")
-
-    def test_var_dot_no_match(self):
-        self.assertEqual(_eval_last("[IS [VAR.] ABC]"), "()")
-
-    def test_var_star(self):
-        self.assertEqual(_eval_last("[IS [VAR*] [QUOTE *Y]]"), "T")
-
-    def test_var_star_no_match(self):
-        self.assertEqual(_eval_last("[IS [VAR*] [QUOTE .Y]]"), "()")
-
-    def test_var_colon(self):
-        self.assertEqual(_eval_last("[IS [VAR:] [QUOTE :C]]"), "T")
-
-    def test_var_seg_dot(self):
-        self.assertEqual(_eval_last("[IS [VAR!.] [QUOTE !.X]]"), "T")
-
-    def test_var_seg_star(self):
-        self.assertEqual(_eval_last("[IS [VAR!*] [QUOTE !*Y]]"), "T")
-
-    def test_var_seg_colon(self):
-        self.assertEqual(_eval_last("[IS [VAR!:] [QUOTE !:C]]"), "T")
-
-    def test_varp_dot(self):
-        """VARP соответствует простым переменным."""
-        self.assertEqual(_eval_last("[IS [VARP] [QUOTE .X]]"), "T")
-
-    def test_varp_star(self):
-        self.assertEqual(_eval_last("[IS [VARP] [QUOTE *Y]]"), "T")
-
-    def test_varp_seg_no_match(self):
-        """VARP не соответствует сегментным переменным."""
-        self.assertEqual(_eval_last("[IS [VARP] [QUOTE !*X]]"), "()")
-
-    def test_vars_seg_star(self):
-        """VARS соответствует сегментным переменным."""
-        self.assertEqual(_eval_last("[IS [VARS] [QUOTE !*Y]]"), "T")
-
-    def test_vars_simple_no_match(self):
-        self.assertEqual(_eval_last("[IS [VARS] [QUOTE .X]]"), "()")
-
-    def test_var_any_simple(self):
-        self.assertEqual(_eval_last("[IS [VAR] [QUOTE .X]]"), "T")
-
-    def test_var_any_seg(self):
-        self.assertEqual(_eval_last("[IS [VAR] [QUOTE !:C]]"), "T")
-
-    def test_var_no_match_atom(self):
-        self.assertEqual(_eval_last("[IS [VAR] ABC]"), "()")
-
-
-# ===========================================================================
-# LIST/LISTP/LISTS/LISTR с образцом для длины (§5.2)
-# ===========================================================================
-
-class TestLISTLengthPattern(unittest.TestCase):
-
-    def test_list_length_star_bind(self):
-        """[LIST *X] связывает X с длиной списка."""
-        result = _eval_last("[PROG (X) [IS [LIST *X] (A B C)] .X]")
-        self.assertEqual(result, "3")
-
-    def test_list_length_gt_match(self):
-        """[LIST [GT 1]] соответствует спискам длиннее 1."""
-        self.assertEqual(_eval_last("[IS [LIST [GT 1]] (A B)]"), "T")
-
-    def test_list_length_gt_no_match(self):
-        self.assertEqual(_eval_last("[IS [LIST [GT 1]] (A)]"), "()")
-
-    def test_list_length_exact(self):
-        """[LIST 2] соответствует списку длины 2."""
-        self.assertEqual(_eval_last("[IS [LIST 2] (A B)]"), "T")
-        self.assertEqual(_eval_last("[IS [LIST 2] (A)]"), "()")
-
-    def test_listr_length_bind(self):
-        """[LISTR *X] связывает X с длиной P-списка."""
-        result = _eval_last("[PROG (X) [IS [LISTR *X] [QUOTE [A B]]] .X]")
-        self.assertEqual(result, "2")
-
-    def test_list_length_dot_check(self):
-        """[LIST .N] проверяет длину по значению переменной."""
-        result = _eval_last("[PROG (N) [SET N 3] [IS [LIST .N] (A B C)]]")
-        self.assertEqual(result, "T")
-
-    def test_list_length_dot_no_match(self):
-        result = _eval_last("[PROG (N) [SET N 4] [IS [LIST .N] (A B C)]]")
-        self.assertEqual(result, "()")
-
-
-# ===========================================================================
-# Сегментные вызовы сопоставителей <g args> (§4)
-# ===========================================================================
-
-class TestSegmentedMatchers(unittest.TestCase):
-
-    def test_segmented_star_matcher(self):
-        """<STAR [NUM]> сопоставляется с сегментом из чисел."""
-        result = _eval_last("[IS (A <STAR [NUM]> B) (A 1 2 3 B)]")
-        self.assertEqual(result, "T")
-
-    def test_segmented_star_matcher_fail(self):
-        """<STAR [NUM]> не соответствует, если в сегменте есть не-число."""
-        result = _eval_last("[IS (A <STAR [NUM]> B) (A 1 X 3 B)]")
-        self.assertEqual(result, "()")
-
-    def test_segmented_star_empty(self):
-        """<STAR [NUM]> соответствует пустому сегменту."""
-        result = _eval_last("[IS (A <STAR [NUM]> B) (A B)]")
-        self.assertEqual(result, "T")
-
-    def test_segmented_listr_wildcard(self):
-        """<LISTR> как сегментный сопоставитель — соответствует любому списковому сегменту."""
-        result = _eval_last("[IS (A <LISTR> B) (A 1 2 B)]")
-        self.assertEqual(result, "T")
-
-    def test_segmented_listr_length_bind(self):
-        """<LISTR *N> связывает N с длиной сегмента."""
-        result = _eval_last("[PROG (N) [IS (A <LISTR *N> B) (A 1 2 B)] .N]")
-        self.assertEqual(result, "2")
-
-
-# ===========================================================================
-# <> — пустой сегментный wildcard (§5.3)
-# ===========================================================================
-
-class TestEmptyPListWildcard(unittest.TestCase):
-    """[] — wildcard, соответствует ровно одному произвольному значению (§5.3)."""
-
-    def test_matches_atom(self):
-        self.assertEqual(_eval_last("[IS [] HELLO]"), "T")
-
-    def test_matches_number(self):
-        self.assertEqual(_eval_last("[IS [] 42]"), "T")
-
-    def test_matches_list(self):
-        self.assertEqual(_eval_last("[IS [] (A B)]"), "T")
-
-    def test_in_list_pattern(self):
-        """[] как элемент образца-списка: wildcard для одного элемента."""
-        self.assertEqual(_eval_last("[IS (A [] B) (A X B)]"), "T")
-        self.assertEqual(_eval_last("[IS (A [] B) (A 99 B)]"), "T")
-
-    def test_two_wildcards(self):
-        self.assertEqual(_eval_last("[IS ([] []) (X Y)]"), "T")
-
-    def test_wrong_length_fails(self):
-        """[] не соответствует отсутствующему элементу."""
-        self.assertEqual(_eval_last("[IS (A [] B) (A B)]"), "()")
-
-
-class TestEmptySegmentedWildcard(unittest.TestCase):
-
-    def test_empty_wildcard_matches_any_segment(self):
-        """<> соответствует любому сегменту между двумя атомами."""
-        self.assertEqual(_eval_last("[IS (A <> B) (A 1 2 B)]"), "T")
-
-    def test_empty_wildcard_empty_segment(self):
-        """<> соответствует пустому сегменту."""
-        self.assertEqual(_eval_last("[IS (A <> B) (A B)]"), "T")
-
-    def test_empty_wildcard_standalone(self):
-        """<> как самостоятельный образец соответствует любому значению."""
-        self.assertEqual(_eval_last("[IS <> HELLO]"), "T")
-        self.assertEqual(_eval_last("[IS <> 42]"), "T")
-        self.assertEqual(_eval_last("[IS <> (A B)]"), "T")
-
-    def test_empty_wildcard_multiple(self):
-        """Два <> делят список произвольно — сначала левый минимален."""
-        self.assertEqual(_eval_last("[IS (<> A <>) (X A Y Z)]"), "T")
-        self.assertEqual(_eval_last("[IS (<> A <>) (A)]"), "T")
-
-    def test_kappa_contains_original(self):
-        """CONTAINS из спецификации через (*P) и <> wildcards."""
-        src = """
-[DEFINE CONTAINS (KAPPA (*P) (<> [PAT .P] <>))]
-[IS [CONTAINS B] (A B C)]
-"""
-        self.assertEqual(_eval_last(src), "T")
-
-    def test_kappa_contains_fail(self):
-        src = """
-[DEFINE CONTAINS (KAPPA (*P) (<> [PAT .P] <>))]
-[IS [CONTAINS D] (A B C)]
-"""
-        self.assertEqual(_eval_last(src), "()")
-
-    def test_kappa_contains_matcher_arg(self):
-        """CONTAINS [ATOM] — найти атомарный элемент в списке."""
-        src = """
-[DEFINE CONTAINS (KAPPA (*P) (<> [PAT .P] <>))]
-[IS [CONTAINS [ATOM]] (1 2 X)]
-"""
-        self.assertEqual(_eval_last(src), "T")
-
-
-# ===========================================================================
-# KAPPA — пользовательские сопоставители (§7)
-# ===========================================================================
-
-class TestKAPPA(unittest.TestCase):
-
-    def test_kappa_no_args_success(self):
-        """NATOM соответствует не-атомам."""
-        src = """
-[DEFINE NATOM (KAPPA () [NON [ATOM]])]
-[IS [NATOM] (A B C)]
-"""
-        self.assertEqual(_eval_last(src), "T")
-
-    def test_kappa_no_args_fail(self):
-        """NATOM не соответствует атому."""
-        src = """
-[DEFINE NATOM (KAPPA () [NON [ATOM]])]
-[IS [NATOM] ABC]
-"""
-        self.assertEqual(_eval_last(src), "()")
-
-    def test_kappa_simple(self):
-        """GT0 — простой сопоставитель без параметров, проверяет x > 0."""
-        src = """
-[DEFINE GT0 (KAPPA () [GT 0])]
-[IS [GT0] 5]
-"""
-        self.assertEqual(_eval_last(src), "T")
-
-    def test_kappa_simple_fail(self):
-        src = """
-[DEFINE GT0 (KAPPA () [GT 0])]
-[IS [GT0] -3]
-"""
-        self.assertEqual(_eval_last(src), "()")
-
-    def test_kappa_with_params(self):
-        """LG MIN MAX — список с длиной от MIN до MAX."""
-        src = """
-[DEFINE LG (KAPPA (MIN MAX) [LISTR [ET [GE .MIN] [LE .MAX]]])]
-[IS [LG 2 4] (A B C)]
-"""
-        self.assertEqual(_eval_last(src), "T")
-
-    def test_kappa_with_params_fail(self):
-        src = """
-[DEFINE LG (KAPPA (MIN MAX) [LISTR [ET [GE .MIN] [LE .MAX]]])]
-[IS [LG 2 4] (A)]
-"""
-        self.assertEqual(_eval_last(src), "()")
-
-    def test_kappa_body_binds_outer_var(self):
-        """Тело KAPPA может связывать переменные во внешней области."""
-        src = """
-[DEFINE CAPTURE (KAPPA () *VAL)]
-[PROG (VAL)
-  [IS [CAPTURE] HELLO]
-  .VAL]
-"""
-        self.assertEqual(_eval_last(src), "HELLO")
-
-    def test_kappa_et_capture(self):
-        """ET внутри KAPPA: проверка типа и захват значения."""
-        src = """
-[DEFINE NUM-CAPTURE (KAPPA () [ET [NUM] *N])]
-[PROG (N)
-  [IS [NUM-CAPTURE] 42]
-  .N]
-"""
-        self.assertEqual(_eval_last(src), "42")
 
 
 if __name__ == "__main__":

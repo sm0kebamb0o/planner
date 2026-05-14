@@ -46,7 +46,7 @@ python -m pytest
 
 ```bash
 python -m pytest src/lexer/test/test_lexer.py -v
-python -m pytest src/parser/test/test_reader.py -v
+python -m pytest src/parser/test/test_parser.py -v
 python -m pytest src/interpreter/test/test_interpreter.py -v
 python -m pytest src/interpreter/test/test_backtracking.py -v
 python -m pytest src/test/test_pipeline.py -v
