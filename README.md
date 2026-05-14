@@ -31,6 +31,7 @@ SList    -> '<' FormList '>'
 FormList -> Form FormList | ε
 ```
 
+## L-граф грамматики
 ![L-граф грамматики](src/parser/graph/planner_lgraph.png)
 
 ## Запуск тестов
