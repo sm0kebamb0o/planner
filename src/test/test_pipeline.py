@@ -4,12 +4,8 @@ import sys
 import unittest
 
 from src.interpreter import PlannerInterpreter
-from src.interpreter.signals import PlannerFailure
 from src.lexer import Lexer
 from src.parser import PlannerParser
-
-
-_EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "..", "examples")
 
 
 def _run(source: str) -> str:

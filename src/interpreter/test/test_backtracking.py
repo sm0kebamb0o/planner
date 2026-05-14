@@ -3,8 +3,7 @@ import sys
 import textwrap
 import unittest
 
-from src.interpreter import PlannerInterpreter, PlannerList, BracketKind
-from src.interpreter.interpreter import NIL, T
+from src.interpreter import PlannerInterpreter
 from src.lexer import Lexer
 from src.parser import PlannerParser
 
