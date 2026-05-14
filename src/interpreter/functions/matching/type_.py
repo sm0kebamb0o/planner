@@ -6,18 +6,18 @@ from src.interpreter.functions.matching.core import match
 
 def register(matchers: dict, interp) -> None:
     def _type(name: str, predicate):
-        matchers[name] = lambda args, expr, interp: predicate(expr)
+        matchers[name] = lambda args, expr: predicate(expr)
 
     _type("ID",     lambda e: isinstance(e, str))
-    _type("NUM",    lambda e: isinstance(e, (int, float)) and not isinstance(e, bool))
-    _type("INT",    lambda e: isinstance(e, int) and not isinstance(e, bool))
+    _type("NUM",    lambda e: isinstance(e, (int, float)))
+    _type("INT",    lambda e: isinstance(e, int))
     _type("REAL",   lambda e: isinstance(e, float))
     _type("SCALE",  lambda e: isinstance(e, ScaleValue))
     _type("ATOM",   lambda e: not isinstance(e, PlannerList))
     _type("ATOMIC", lambda e: not isinstance(e, PlannerList))
 
     def _list_any(kind):
-        def fn(args, expr, interp):
+        def fn(args, expr):
             if not isinstance(expr, PlannerList) or expr.kind != kind:
                 return False
             if args:
@@ -29,7 +29,7 @@ def register(matchers: dict, interp) -> None:
     matchers["LISTP"] = _list_any(BracketKind.SQUARE)
     matchers["LISTS"] = _list_any(BracketKind.ANGLE)
 
-    def _listr(args, expr, interp):
+    def _listr(args, expr):
         if not isinstance(expr, PlannerList):
             return False
         if args:
@@ -65,5 +65,4 @@ def register(matchers: dict, interp) -> None:
     _type("VAR!:", _vscol)
     _type("VARP",  lambda e: _vdot(e) or _vstar(e) or _vcol(e))
     _type("VARS",  lambda e: _vsdot(e) or _vsstr(e) or _vscol(e))
-    _type("VAR",   lambda e: _vdot(e) or _vstar(e) or _vcol(e) or
-                              _vsdot(e) or _vsstr(e) or _vscol(e))
+    _type("VAR",   lambda e: _vdot(e) or _vstar(e) or _vcol(e) or _vsdot(e) or _vsstr(e) or _vscol(e))

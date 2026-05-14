@@ -1,10 +1,3 @@
-"""
-End-to-end pipeline tests: Lexer -> Parser -> Interpreter.
-
-Tests cover the full pipeline from raw source text to evaluated output,
-using example programs from the examples/ directory as well as inline sources.
-"""
-
 import io
 import os
 import sys

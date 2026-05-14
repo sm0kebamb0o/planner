@@ -4,6 +4,7 @@ from src.parser.ast.nodes import (
     FormNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )
+from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.values import BracketKind, PlannerList, ScaleValue
 
 
@@ -20,7 +21,7 @@ def _is_segmented(pat: FormNode) -> bool:
     if isinstance(pat, VarRefNode):
         return pat.segmented
     if isinstance(pat, CallNode):
-        return pat.segmented
+        return pat.segmented  # [] has segmented=False, <> has segmented=True
     return False
 
 
@@ -63,21 +64,23 @@ def match(pat: FormNode, expr, interp) -> bool:
             return True
         return match_list(pat.elements, expr.elements, 0, 0, interp)
 
-    if isinstance(pat, CallNode) and not pat.args and isinstance(pat.head, IdentNode) and not pat.head.name:
+    # [] — wildcard: совпадает с любым одиночным элементом
+    if (
+        isinstance(pat, CallNode)
+        and not pat.args
+        and isinstance(pat.head, IdentNode)
+        and not pat.head.name
+    ):
         return True
 
     if isinstance(pat, CallNode) and isinstance(pat.head, IdentNode):
         matcher_name = pat.head.name
         if matcher_name in interp._matchers:
-            return interp._matchers[matcher_name](pat.args, expr, interp)
+            return interp._matchers[matcher_name](pat.args, expr)
         val = interp.eval_form(pat)
         return val == expr
 
-    try:
-        val = interp.eval_form(pat)
-        return val == expr
-    except Exception:
-        return False
+    raise PlannerRuntimeError(f"Неизвестный сопоставитель: {pat!r}")
 
 
 def match_list(
@@ -123,11 +126,12 @@ def _try_bind_segment(seg_pat: FormNode, seg_list, interp) -> bool:
 
     if isinstance(seg_pat, CallNode) and seg_pat.segmented:
         if not seg_pat.args:
+            # <>
             return True
         if isinstance(seg_pat.head, IdentNode):
             name = seg_pat.head.name
             if name in interp._matchers:
-                return interp._matchers[name](seg_pat.args, seg_list, interp)
+                return interp._matchers[name](seg_pat.args, seg_list)
         return False
 
     return False
@@ -142,7 +146,7 @@ def _match_segment(
     interp,
 ) -> bool:
     max_remaining = len(items) - ii
-    min_needed = sum(1 for p in pats[pi + 1:] if not _is_segmented(p))
+    min_needed = sum(1 for p in pats[pi + 1:] if not _is_segmented(p))  # грубо
     max_seg_len = max_remaining - min_needed
 
     for seg_len in range(0, max_seg_len + 1):
@@ -189,7 +193,7 @@ def _all_wildcards(
                 pass
             else:
                 if isinstance(p.head, IdentNode) and p.head.name in interp._matchers:
-                    if not interp._matchers[p.head.name](p.args, empty, interp):
+                    if not interp._matchers[p.head.name](p.args, empty):
                         return False
                 else:
                     return False

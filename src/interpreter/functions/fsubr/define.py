@@ -39,7 +39,7 @@ def _make_kappa_matcher(fn_name, params, body, interp):
     # Ожидается что сопоставитель вызывается не часто
     from src.interpreter.functions.matching import match
 
-    def matcher(raw_args, expr, interp_):
+    def matcher(raw_args, expr):
         if isinstance(params, SimpleParam):
             if params.unevaluated:
                 bound_val = PlannerList(
@@ -48,7 +48,7 @@ def _make_kappa_matcher(fn_name, params, body, interp):
                 )
             else:
                 bound_val = PlannerList(
-                    elements=[interp_.eval_form(a) for a in raw_args],
+                    elements=[interp.eval_form(a) for a in raw_args],
                     kind=BracketKind.ROUND,
                 )
             declared = [params.name]
@@ -65,15 +65,15 @@ def _make_kappa_matcher(fn_name, params, body, interp):
                 if unevaluated:
                     bindings[pname] = codec.ast_to_value(arg_node)
                 else:
-                    bindings[pname] = interp_.eval_form(arg_node)
+                    bindings[pname] = interp.eval_form(arg_node)
         else:
             raise PlannerRuntimeError("KAPPA: неверная спецификация параметров")
 
-        interp_.env.push_frame(declared, bindings)
+        interp.env.push_frame(declared, bindings)
         try:
-            return match(body, expr, interp_)
+            return match(body, expr, interp)
         finally:
-            interp_.env.pop_frame()
+            interp.env.pop_frame()
 
     return matcher
 
