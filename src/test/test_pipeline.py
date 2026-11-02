@@ -71,6 +71,27 @@ class TestPipelineBasics(unittest.TestCase):
         self.assertEqual(_eval("[REAL 3.14]"), "T")
 
 
+class TestPipelineComments(unittest.TestCase):
+
+    def test_comments_are_not_evaluated_or_printed(self):
+        source = "# [FAIL]\n[+ 1# ] [FAIL]\n2]# [FAIL]"
+        self.assertEqual(_run(source), _run("[+ 1 2]"))
+
+    def test_comment_only_program(self):
+        self.assertEqual(_run("# [FAIL]\n# пояснение"), "")
+
+    def test_comments_in_backtracking_program(self):
+        source = """
+        [DATA (BOX A) (BOX B)] # исходные данные
+        [PROG (X)
+            [SEARCH (BOX *X)] # первый кандидат — A
+            # [FAIL] здесь не выполняется
+            [UNFALSE [NEQ .X A]] # возврат к поиску
+            .X]# результат — B
+        """
+        self.assertEqual(_eval(source), "B")
+
+
 class TestPipelineDatabase(unittest.TestCase):
 
     def test_assert_then_search(self):

@@ -143,6 +143,23 @@ class TestProgramParsing(unittest.TestCase):
         prog = _parse("* это комментарий-атом\n[+ 1 2]")
         self.assertIsInstance(prog.forms[-1], CallNode)
 
+    def test_hash_comments_do_not_add_forms(self):
+        prog = _parse("# [FAIL]\n[+ 1 2]# пояснение\n# ]")
+        self.assertEqual(len(prog.forms), 1)
+        self.assertIsInstance(prog.forms[0], CallNode)
+
+    def test_comments_inside_all_list_types(self):
+        for source, expected in (
+            ("(A# )\nB)", "(A B)"),
+            ("[F A# ]\nB]", "[F A B]"),
+            ("<F A# >\nB>", "<F A B>"),
+        ):
+            with self.subTest(source=source):
+                self.assertEqual(_parse(source), _parse(expected))
+
+    def test_comment_only_program(self):
+        self.assertEqual(_parse("# пояснение\n# [FAIL]").forms, [])
+
 
 class TestEmptyPList(unittest.TestCase):
 

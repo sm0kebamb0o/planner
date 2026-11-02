@@ -229,6 +229,11 @@ class Lexer:
                 pos += 1
                 continue
 
+            if ch == '#':
+                while pos < n and src[pos] not in '\r\n':
+                    pos += 1
+                continue
+
             col = pos - line_start + 1
 
             if ch in BRACKETS:

@@ -16,8 +16,8 @@
       [SET FV (!.B !.E)]]
     .LV])]
 
-; First solution: [Ф8]  ->  (1 5 8 6 3 7 2 4)
-; vi is the column of the queen on row i.
+# First solution: [Ф8]  ->  (1 5 8 6 3 7 2 4)
+# vi is the column of the queen on row i.
 
-; Print all 92 solutions:
+# Print all 92 solutions:
 [GATE [PRINT [Ф8]] [FAIL]]

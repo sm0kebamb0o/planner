@@ -47,8 +47,8 @@ KEYWORDS = (
 )
 
 _HIGHLIGHT_RULES: list[tuple[str, str]] = [
-    # Комментарии — строки, начинающиеся с «*» (с возможными пробелами)
-    ("comment",  r"(?m)^[ \t]*\*[^\n]*"),
+    # Комментарии — от «#» до конца строки
+    ("comment",  r"#[^\r\n]*"),
     # Ключевые слова (целые токены в верхнем регистре)
     ("keyword",  r"\b(?:" + "|".join(KEYWORDS) + r")\b"),
     # Ссылки на переменные: .X  *X  :X  !.X  !*X  !:X
@@ -261,6 +261,8 @@ class PlannerIDE(tk.Tk):
         ed.tag_configure("p_bracket", foreground=THEME["yellow"])
         ed.tag_configure("l_bracket", foreground=THEME["teal"])
         ed.tag_configure("s_bracket", foreground=THEME["green"])
+        ed.tag_raise("comment")
+        ed.tag_raise("sel")
 
     def _on_editor_modified(self, _event: tk.Event | None = None) -> None:
         if self.editor.edit_modified():

@@ -28,6 +28,7 @@ class SpecialSymbols(StrEnum):
     TAB        = '\t'
     NEWLINE    = '\n'
     RETURN     = '\r'
+    COMMENT    = '#'
 
 
 @dataclass
@@ -47,6 +48,7 @@ DELIMITERS: frozenset[str] = frozenset(
         SpecialSymbols.TAB,
         SpecialSymbols.NEWLINE,
         SpecialSymbols.RETURN,
+        SpecialSymbols.COMMENT,
         TT.LPAREN,
         TT.RPAREN,
         TT.LBRACKET,

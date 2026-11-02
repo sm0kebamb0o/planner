@@ -136,6 +136,35 @@ class TestSplitIntoForms(unittest.TestCase):
             Lexer(")").tokenize()
 
 
+class TestComments(unittest.TestCase):
+
+    def test_only_comments(self):
+        for source in ("#", "# комментарий без переноса", "  # первый\n\t# второй\n"):
+            with self.subTest(source=source):
+                self.assertEqual(Lexer(source).tokenize(), [])
+
+    def test_comment_after_token_without_space(self):
+        for token in ("ABC", "42", "-0.5", "*37", ".X", "*X", ":X", "!.X", "!*X", "!:X"):
+            with self.subTest(token=token):
+                self.assertEqual(_flat(token + "# игнорировать"), _flat(token))
+
+    def test_comments_inside_forms_ignore_brackets_and_invalid_tokens(self):
+        source = "[+ 1# ] ) > !.123 [FAIL]\n# [\n2]# ["
+        self.assertEqual(_groups(source), _groups("[+ 1 2]"))
+
+    def test_comments_preserve_separate_forms(self):
+        self.assertEqual(_groups("ABC# пояснение\nDEF"), _groups("ABC DEF"))
+
+    def test_positions_after_crlf_comments(self):
+        groups = Lexer("# первый\r\n  ABC# второй\r\n\tDEF").tokenize()
+        self.assertEqual((groups[0][0].line, groups[0][0].col), (2, 3))
+        self.assertEqual((groups[1][0].line, groups[1][0].col), (3, 2))
+
+    def test_error_position_after_comment(self):
+        with self.assertRaisesRegex(LexerError, "в строке 2, столбец 3"):
+            Lexer("# ]\n  ]").tokenize()
+
+
 class TestLineNumbers(unittest.TestCase):
 
     def test_line_number(self):
