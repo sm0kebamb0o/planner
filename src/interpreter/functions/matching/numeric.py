@@ -6,7 +6,7 @@ def register(matchers: dict, interp) -> None:
         def fn(args, expr):
             if not args or not isinstance(expr, (int, float)):
                 return False
-            n = interp.eval_form(args[0])
+            n = (yield from interp.eval_first_bt(args[0]))
             if not isinstance(n, (int, float)):
                 return False
             return op(expr, n)

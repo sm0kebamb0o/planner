@@ -25,7 +25,7 @@ def prog(raw_args: list, interp):
                     f"PROG: имя переменной должно быть идентификатором, получено {name_node!r}"
                 )
             declared_names.append(name_node.name)
-            init_bindings[name_node.name] = interp.eval_form(decl.elements[1])
+            init_bindings[name_node.name] = (yield from interp.eval_first_bt(decl.elements[1]))
         else:
             raise PlannerRuntimeError(f"PROG: неверное объявление переменной: {decl!r}")
 

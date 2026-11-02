@@ -6,9 +6,9 @@ from typing import Union
 
 
 class VarMode(Enum):
-    READ   = auto()   # .X  / !.X  — read local variable
-    ASSIGN = auto()   # *X  / !*X  — assign local variable (L-value)
-    CONST  = auto()   # :X  / !:X  — read global constant
+    READ   = auto()   # .X  / !.X  — чтение локальной переменной
+    ASSIGN = auto()   # *X  / !*X  — запись в локальную переменную
+    CONST  = auto()   # :X  / !:X  — чтение глобальной константы
 
 
 @dataclass
@@ -46,7 +46,7 @@ class FloatNode:
 @dataclass
 class ScaleNode:
     bits: int
-    source: str = field(repr=False)  # original octal text, e.g. "3704"
+    source: str = field(repr=False)  # исходная восьмеричная запись, например "3704"
 
     def __repr__(self) -> str:
         return f"Scale(*{self.source})"

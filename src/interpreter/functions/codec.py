@@ -68,6 +68,26 @@ def value_to_form(val: Value) -> FormNode:
     )
 
 
+def value_to_pattern(val: Value) -> FormNode:
+    """Преобразует маркеры переменных QUOTE, сохраняя обычные значения EVAL."""
+    if not isinstance(val, PlannerList):
+        return value_to_form(val)
+    if (val.kind == BracketKind.ROUND and len(val.elements) == 1
+            and isinstance(val.elements[0], str)):
+        marker = val.elements[0]
+        for (mode, segmented), prefix in sorted(
+                _VAR_PREFIX.items(), key=lambda pair: -len(pair[1])):
+            if marker.startswith(prefix) and len(marker) > len(prefix):
+                return VarRefNode(mode, marker[len(prefix):], segmented)
+    if val.kind in (BracketKind.SQUARE, BracketKind.ANGLE):
+        if not val.elements or val.elements == [""]:
+            return CallNode(IdentNode(""), [], val.kind == BracketKind.ANGLE)
+        return CallNode(value_to_pattern(val.elements[0]),
+                        [value_to_pattern(e) for e in val.elements[1:]],
+                        val.kind == BracketKind.ANGLE)
+    return LListNode([value_to_pattern(e) for e in val.elements])
+
+
 def repr_form(node: FormNode) -> str:
     if isinstance(node, IdentNode):
         return node.name

@@ -12,11 +12,13 @@ class Frame:
     bindings: текущие значения (может не совпадать с declared, если UNASSIGN)
     labels:   метки для GO (только в PROG-фреймах)
     is_prog:  True — фрейм создан PROG (цель для RETURN)
+    is_function: True — граница LAMBDA, которую GO не пересекает
     """
     declared : set[str]         = field(default_factory=set)
     bindings : dict[str, Value] = field(default_factory=dict)
     labels   : dict[str, int]   = field(default_factory=dict)
     is_prog  :  bool            = False
+    is_function: bool          = False
 
 
 class Environment:
@@ -30,12 +32,14 @@ class Environment:
         bindings: dict[str, Value],
         labels: dict[str, int] | None = None,
         is_prog: bool = False,
+        is_function: bool = False,
     ) -> Frame:
         frame = Frame(
             declared  = set(declared),
             bindings  = dict(bindings),
             labels    = labels or {},
             is_prog   = is_prog,
+            is_function = is_function,
         )
         self._frames.append(frame)
         return frame

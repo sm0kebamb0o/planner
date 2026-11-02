@@ -1,10 +1,11 @@
 from src.interpreter.values import NIL, T, Value
 from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.functions import codec
+from src.interpreter.functions.utils import as_number, check_arity
 
 
 def set_(args: list, interp) -> Value:
-    interp._check_arity("SET", args, 2)
+    check_arity("SET", args, 2)
     name = args[0]
     if not isinstance(name, str):
         raise PlannerRuntimeError(
@@ -17,7 +18,7 @@ def set_(args: list, interp) -> Value:
 
 
 def cset(args: list, interp) -> Value:
-    interp._check_arity("CSET", args, 2)
+    check_arity("CSET", args, 2)
     if not isinstance(args[0], str):
         raise PlannerRuntimeError("CSET: первый аргумент должен быть именем")
     interp._record_undo_constant(args[0])
@@ -26,12 +27,12 @@ def cset(args: list, interp) -> Value:
 
 
 def add1(args: list, interp) -> Value:
-    interp._check_arity("ADD1", args, 1)
+    check_arity("ADD1", args, 1)
     name = args[0]
     if not isinstance(name, str):
         raise PlannerRuntimeError("ADD1: аргумент должен быть именем переменной")
     val = interp.env.get_local(name)
-    new_val = interp._as_number("ADD1", val) + 1
+    new_val = as_number("ADD1", val, float_digits=interp._float_digits) + 1
     new_val = int(new_val) if isinstance(val, int) else float(new_val)
     interp._record_undo_local(name)
     interp.env.set_local(name, new_val)
@@ -39,12 +40,12 @@ def add1(args: list, interp) -> Value:
 
 
 def sub1(args: list, interp) -> Value:
-    interp._check_arity("SUB1", args, 1)
+    check_arity("SUB1", args, 1)
     name = args[0]
     if not isinstance(name, str):
         raise PlannerRuntimeError("SUB1: аргумент должен быть именем переменной")
     val = interp.env.get_local(name)
-    new_val = interp._as_number("SUB1", val) - 1
+    new_val = as_number("SUB1", val, float_digits=interp._float_digits) - 1
     new_val = int(new_val) if isinstance(val, int) else float(new_val)
     interp._record_undo_local(name)
     interp.env.set_local(name, new_val)
@@ -52,21 +53,21 @@ def sub1(args: list, interp) -> Value:
 
 
 def bound(args: list, interp) -> Value:
-    interp._check_arity("BOUND", args, 1)
+    check_arity("BOUND", args, 1)
     if not isinstance(args[0], str):
         raise PlannerRuntimeError("BOUND: аргумент должен быть именем")
     return T if interp.env.is_bound(args[0]) else NIL
 
 
 def hasval(args: list, interp) -> Value:
-    interp._check_arity("HASVAL", args, 1)
+    check_arity("HASVAL", args, 1)
     if not isinstance(args[0], str):
         raise PlannerRuntimeError("HASVAL: аргумент должен быть именем")
     return T if interp.env.has_value(args[0]) else NIL
 
 
 def unassign(args: list, interp) -> Value:
-    interp._check_arity("UNASSIGN", args, 1)
+    check_arity("UNASSIGN", args, 1)
     if not isinstance(args[0], str):
         raise PlannerRuntimeError("UNASSIGN: аргумент должен быть именем")
     interp.env.unassign(args[0])
@@ -74,7 +75,7 @@ def unassign(args: list, interp) -> Value:
 
 
 def value(args: list, interp) -> Value:
-    interp._check_arity("VALUE", args, 1)
+    check_arity("VALUE", args, 1)
     if not isinstance(args[0], str):
         raise PlannerRuntimeError("VALUE: аргумент должен быть именем переменной")
     return interp.env.get_local(args[0])

@@ -43,5 +43,12 @@ NIL = PlannerList(elements=[], kind=BracketKind.ROUND)
 T   = "T"
 
 
+def segment_value(value: Value) -> list[Value]:
+    if isinstance(value, PlannerList):
+        return value.elements
+    # Атомы задают сегмент из одного элемента.
+    return [value]
+
+
 def _is_true(val: "Value") -> bool:
     return not (isinstance(val, PlannerList) and len(val.elements) == 0)

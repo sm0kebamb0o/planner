@@ -33,7 +33,7 @@ class Grammar:
         non_terminals: list[Neterminal],
         start: Neterminal | None = None,
     ) -> "Grammar":
-        """Parse a CFG from text."""
+        """Разбирает контекстно-свободную грамматику из текста."""
         if EPSILON in terminals:
             raise ValueError(f"{EPSILON.value!r} must not appear in the terminals set")
         if EPSILON in non_terminals:
@@ -111,7 +111,7 @@ class Grammar:
         )
 
     # ------------------------------------------------------------------
-    # Serialization
+    # Сериализация
     # ------------------------------------------------------------------
 
     def dump(self, file_path: str | Path) -> None:

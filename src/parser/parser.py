@@ -16,7 +16,7 @@ class PlannerParser:
         self.graph: Graph = PLANNER_GRAPH
 
     # ------------------------------------------------------------------
-    # Public methods
+    # Публичные методы
     # ------------------------------------------------------------------
 
     def parse(self, token_groups: list[list[Token]]) -> ProgramNode:
@@ -27,7 +27,7 @@ class PlannerParser:
         return ProgramNode(forms=forms)
 
     # ------------------------------------------------------------------
-    # Inner methods
+    # Внутренние методы
     # ------------------------------------------------------------------
 
     def _parse_form(self, group: list[Token]) -> FormNode:
@@ -50,7 +50,7 @@ class PlannerParser:
         # Тут нельзя итерироваться только по токенам,
         # потому что нужно дойти до финальной вершины
         while True:
-            # TODO: нужно предусмотреть механизм
+            # Нужно предусмотреть механизм
             # от зацикливания и долгого блуждания
             if self.graph.is_final(current_vertex) and not b_stack:
                 # Смогли разобрать форму полностью
@@ -102,12 +102,6 @@ class PlannerParser:
         token_type: TT | None,
         b_stack: list[tuple[Id, Neterminal]],
     ) -> Edge | None:
-        """Из всех рёбер текущей вершины выбирается первое подходящее:
-        1. Терминальное ребро с пометкой == token_type
-        2. Открывающая скобка к NT_beg, если token_type in FIRST(NT)
-        3. Закрывающая скобка, если b_stack[-1][0] == edge.value.id
-        4. eps-ребро (запасной вариант; покрывает пустой FormList)
-        """
         edges = self.graph.get_adjacent_edges(vertex)
         eps_edge:      Edge | None = None
         nullable_edge: Edge | None = None

@@ -1,4 +1,4 @@
-from src.interpreter.functions.backtracking.utils import _tracked_gen
+from src.interpreter.control_flow import ControlRequest
 from src.interpreter.errors import PlannerRuntimeError
 from src.interpreter.values import PlannerList
 
@@ -7,19 +7,23 @@ def among(raw_args: list, interp):
     if not raw_args:
         raise PlannerRuntimeError("AMONG: нужен аргумент")
 
-    lst = interp.eval_form(raw_args[0])
-    if not isinstance(lst, PlannerList) or not lst.elements:
-        interp._last_failure = "AMONG"
-        # Тут неявно вызовется PlannerFailure c EXHAUSTED
-        return
+    gen = interp.eval_form_bt(raw_args[0])
+    try:
+        for lst in gen:
+            if isinstance(lst, ControlRequest):
+                yield lst
+                continue
+            if not isinstance(lst, PlannerList) or not lst.elements:
+                interp._last_failure = "AMONG"
+                continue
 
-    def _gen():
-        for elem in lst.elements:
-            mark = interp._trail.mark()
-            yield elem
-            interp._trail.undo_to(mark)
+            for elem in lst.elements:
+                mark = interp._trail.mark()
+                yield elem
+                interp._trail.undo_to(mark)
 
-    yield from _tracked_gen(_gen(), interp)
+    finally:
+        gen.close()
 
 
 def register(interp) -> None:

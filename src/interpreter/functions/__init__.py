@@ -5,6 +5,7 @@ from src.interpreter.functions.spec import (
 )
 from src.interpreter.functions.subr import register_subrs
 from src.interpreter.functions import matching
+from src.interpreter.functions import database
 
 
 __all__ = [
@@ -16,3 +17,4 @@ def register_all(interp) -> None:
     register_fsubrs(interp)
     register_bt(interp)
     matching.register_all(interp)
+    database.register(interp)

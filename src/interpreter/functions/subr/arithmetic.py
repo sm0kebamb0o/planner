@@ -3,6 +3,7 @@ import random
 
 from src.interpreter.values import Value
 from src.interpreter.errors import PlannerRuntimeError
+from src.interpreter.functions.utils import as_number, check_arity
 
 
 def add(args: list, interp) -> Value:
@@ -10,13 +11,16 @@ def add(args: list, interp) -> Value:
         raise PlannerRuntimeError("+: нужен хотя бы один аргумент")
     total: int | float = 0
     for a in args:
-        total = total + interp._as_number("+", a)
+        total = total + as_number("+", a, float_digits=interp._float_digits)
     return total
 
 
 def sub(args: list, interp) -> Value:
-    interp._check_arity("-", args, 2)
-    return interp._as_number("-", args[0]) - interp._as_number("-", args[1])
+    check_arity("-", args, 2)
+    return (
+        as_number("-", args[0], float_digits=interp._float_digits)
+        - as_number("-", args[1], float_digits=interp._float_digits)
+    )
 
 
 def mul(args: list, interp) -> Value:
@@ -24,40 +28,40 @@ def mul(args: list, interp) -> Value:
         raise PlannerRuntimeError("×: нужен хотя бы один аргумент")
     result: int | float = 1
     for a in args:
-        result = result * interp._as_number("×", a)
+        result = result * as_number("×", a, float_digits=interp._float_digits)
     return result
 
 
 def div(args: list, interp) -> Value:
-    interp._check_arity("/", args, 2)
-    n2 = interp._as_number("/", args[1])
+    check_arity("/", args, 2)
+    n2 = as_number("/", args[1], float_digits=interp._float_digits)
     if n2 == 0:
         raise PlannerRuntimeError("/: деление на ноль")
-    return float(interp._as_number("/", args[0])) / float(n2)
+    return float(as_number("/", args[0], float_digits=interp._float_digits)) / float(n2)
 
 
 def idiv(args: list, interp) -> Value:
-    interp._check_arity("DIV", args, 2)
-    n1 = interp._as_number("DIV", args[0])
-    n2 = interp._as_number("DIV", args[1])
+    check_arity("DIV", args, 2)
+    n1 = as_number("DIV", args[0], float_digits=interp._float_digits)
+    n2 = as_number("DIV", args[1], float_digits=interp._float_digits)
     if n2 == 0:
         raise PlannerRuntimeError("DIV: деление на ноль")
     return int(math.floor(n1 / n2))
 
 
 def mod(args: list, interp) -> Value:
-    interp._check_arity("MOD", args, 2)
-    n1 = interp._as_number("MOD", args[0])
-    n2 = interp._as_number("MOD", args[1])
+    check_arity("MOD", args, 2)
+    n1 = as_number("MOD", args[0], float_digits=interp._float_digits)
+    n2 = as_number("MOD", args[1], float_digits=interp._float_digits)
     if n2 == 0:
         raise PlannerRuntimeError("MOD: деление на ноль")
     return n1 - n2 * math.floor(n1 / n2)
 
 
 def power(args: list, interp) -> Value:
-    interp._check_arity("↑", args, 2)
-    base = interp._as_number("↑", args[0])
-    exp  = interp._as_number("↑", args[1])
+    check_arity("↑", args, 2)
+    base = as_number("↑", args[0], float_digits=interp._float_digits)
+    exp  = as_number("↑", args[1], float_digits=interp._float_digits)
     result = base ** exp
     if isinstance(base, int) and isinstance(exp, int) and exp >= 0:
         return int(result)
@@ -65,41 +69,41 @@ def power(args: list, interp) -> Value:
 
 
 def abs_(args: list, interp) -> Value:
-    interp._check_arity("ABS", args, 1)
-    return abs(interp._as_number("ABS", args[0]))
+    check_arity("ABS", args, 1)
+    return abs(as_number("ABS", args[0], float_digits=interp._float_digits))
 
 
 def entier(args: list, interp) -> Value:
-    interp._check_arity("ENTIER", args, 1)
-    return int(math.floor(interp._as_number("ENTIER", args[0])))
+    check_arity("ENTIER", args, 1)
+    return int(math.floor(as_number("ENTIER", args[0], float_digits=interp._float_digits)))
 
 
 def round_(args: list, interp) -> Value:
-    interp._check_arity("ROUND", args, 1)
-    return int(math.floor(interp._as_number("ROUND", args[0]) + 0.5))
+    check_arity("ROUND", args, 1)
+    return int(math.floor(as_number("ROUND", args[0], float_digits=interp._float_digits) + 0.5))
 
 
 def sign(args: list, interp) -> Value:
-    interp._check_arity("SIGN", args, 1)
-    x = interp._as_number("SIGN", args[0])
+    check_arity("SIGN", args, 1)
+    x = as_number("SIGN", args[0], float_digits=interp._float_digits)
     return 1 if x > 0 else (0 if x == 0 else -1)
 
 
 def sqrt_(args: list, interp) -> Value:
-    interp._check_arity("SQRT", args, 1)
-    return math.sqrt(float(interp._as_number("SQRT", args[0])))
+    check_arity("SQRT", args, 1)
+    return math.sqrt(float(as_number("SQRT", args[0], float_digits=interp._float_digits)))
 
 
 def max_(args: list, interp) -> Value:
     if not args:
         raise PlannerRuntimeError("MAX: нужен хотя бы один аргумент")
-    return max(interp._as_number("MAX", a) for a in args)
+    return max(as_number("MAX", a, float_digits=interp._float_digits) for a in args)
 
 
 def min_(args: list, interp) -> Value:
     if not args:
         raise PlannerRuntimeError("MIN: нужен хотя бы один аргумент")
-    return min(interp._as_number("MIN", a) for a in args)
+    return min(as_number("MIN", a, float_digits=interp._float_digits) for a in args)
 
 
 def random_(args: list) -> Value:

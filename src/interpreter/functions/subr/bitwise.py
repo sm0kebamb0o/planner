@@ -1,47 +1,48 @@
 from src.interpreter.values import ScaleValue, Value
 from src.interpreter.errors import PlannerRuntimeError
+from src.interpreter.functions.utils import as_int, as_scale, check_arity
 
 
 def bitor(args: list, interp) -> Value:
-    interp._check_arity("BITOR", args, 2)
-    s1 = interp._as_scale("BITOR", args[0])
-    s2 = interp._as_scale("BITOR", args[1])
+    check_arity("BITOR", args, 2)
+    s1 = as_scale("BITOR", args[0], float_digits=interp._float_digits)
+    s2 = as_scale("BITOR", args[1], float_digits=interp._float_digits)
     bits = s1.bits | s2.bits
     return ScaleValue(bits=bits, source=oct(bits)[2:])
 
 
 def bitand(args: list, interp) -> Value:
-    interp._check_arity("BITAND", args, 2)
-    s1 = interp._as_scale("BITAND", args[0])
-    s2 = interp._as_scale("BITAND", args[1])
+    check_arity("BITAND", args, 2)
+    s1 = as_scale("BITAND", args[0], float_digits=interp._float_digits)
+    s2 = as_scale("BITAND", args[1], float_digits=interp._float_digits)
     bits = s1.bits & s2.bits
     return ScaleValue(bits=bits, source=oct(bits)[2:])
 
 
 def comp(args: list, interp) -> Value:
-    interp._check_arity("COMP", args, 2)
-    s1 = interp._as_scale("COMP", args[0])
-    s2 = interp._as_scale("COMP", args[1])
+    check_arity("COMP", args, 2)
+    s1 = as_scale("COMP", args[0], float_digits=interp._float_digits)
+    s2 = as_scale("COMP", args[1], float_digits=interp._float_digits)
     bits = s1.bits ^ s2.bits
     return ScaleValue(bits=bits, source=oct(bits)[2:])
 
 
 def shift(args: list, interp) -> Value:
-    interp._check_arity("SHIFT", args, 2)
-    s = interp._as_scale("SHIFT", args[0])
-    n = interp._as_int("SHIFT", args[1])
+    check_arity("SHIFT", args, 2)
+    s = as_scale("SHIFT", args[0], float_digits=interp._float_digits)
+    n = as_int("SHIFT", args[1], float_digits=interp._float_digits)
     bits = (s.bits >> n) if n >= 0 else (s.bits << (-n))
     return ScaleValue(bits=bits, source=oct(bits)[2:])
 
 
 def bsum(args: list, interp) -> Value:
-    interp._check_arity("BSUM", args, 1)
-    return bin(interp._as_scale("BSUM", args[0]).bits).count("1")
+    check_arity("BSUM", args, 1)
+    return bin(as_scale("BSUM", args[0], float_digits=interp._float_digits).bits).count("1")
 
 
 def topbit(args: list, interp) -> Value:
-    interp._check_arity("TOPBIT", args, 1)
-    return interp._as_scale("TOPBIT", args[0]).bits.bit_length()
+    check_arity("TOPBIT", args, 1)
+    return as_scale("TOPBIT", args[0], float_digits=interp._float_digits).bits.bit_length()
 
 
 def register(interp) -> None:

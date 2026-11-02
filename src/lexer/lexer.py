@@ -39,13 +39,8 @@ _SCALE_RE = re.compile(r'\*[0-7]+')         # *5, *3704
 
 
 def _classify(word: str, line: int, col: int) -> list[Token]:
-    """Определить тип(ы) токена для выделенного слова.
 
-    Возвращает список из одного токена для большинства слов или двух токенов,
-    когда слово содержит префикс ссылки на переменную (DOT/STAR/COLON/BANG-*).
-    """
-
-    # 1. Bang-варианты: !. !* !:  →  BANG_xx + IDENT
+    # 1. Варианты с восклицательным знаком: !. !* !:  →  BANG_xx + IDENT
     for prefix, tt in [('!.', TT.BANG_DOT), ('!*', TT.BANG_STAR), ('!:', TT.BANG_COLON)]:
         if word.startswith(prefix):
             name = word.removeprefix(prefix)
@@ -147,7 +142,7 @@ def _split_tokens_into_forms(tokens: list[Token]) -> list[list[Token]]:
 
     for token in tokens:
         # На верхнем уровне каждый новый токен начинает новую форму,
-        # кроме IDENT, завершающего пару prefix+IDENT.
+        # кроме IDENT, завершающего пару «префикс + идентификатор».
         if not brackets_stack and not expect_ident_after_prefix and current_form:
             forms.append(current_form)
             current_form = []
@@ -204,14 +199,14 @@ class Lexer:
         self._src = source
 
     # ------------------------------------------------------------------
-    # Public methods
+    # Публичные методы
     # ------------------------------------------------------------------
 
     def tokenize(self) -> list[list[Token]]:
         return _split_tokens_into_forms(list(self._token_stream()))
 
     # ------------------------------------------------------------------
-    # Inner methods
+    # Внутренние методы
     # ------------------------------------------------------------------
 
     def _token_stream(self) -> Generator[Token, None, None]:

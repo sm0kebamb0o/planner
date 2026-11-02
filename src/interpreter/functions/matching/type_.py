@@ -1,12 +1,19 @@
 from __future__ import annotations
 
 from src.interpreter.values import BracketKind, PlannerList, ScaleValue
-from src.interpreter.functions.matching.core import match
+from src.interpreter.functions.matching.core import match_bt
 
 
 def register(matchers: dict, interp) -> None:
-    def _type(name: str, predicate):
-        matchers[name] = lambda args, expr: predicate(expr)
+    def _type(name: str, predicate, match_length: bool = False):
+        def matcher(args, expr):
+            if not predicate(expr):
+                return False
+            if match_length and args:
+                return (yield from match_bt(args[0], len(expr.elements), interp))
+            return True
+
+        matchers[name] = matcher
 
     _type("ID",     lambda e: isinstance(e, str))
     _type("NUM",    lambda e: isinstance(e, (int, float)))
@@ -16,27 +23,10 @@ def register(matchers: dict, interp) -> None:
     _type("ATOM",   lambda e: not isinstance(e, PlannerList))
     _type("ATOMIC", lambda e: not isinstance(e, PlannerList))
 
-    def _list_any(kind):
-        def fn(args, expr):
-            if not isinstance(expr, PlannerList) or expr.kind != kind:
-                return False
-            if args:
-                return match(args[0], len(expr.elements), interp)
-            return True
-        return fn
-
-    matchers["LIST"]  = _list_any(BracketKind.ROUND)
-    matchers["LISTP"] = _list_any(BracketKind.SQUARE)
-    matchers["LISTS"] = _list_any(BracketKind.ANGLE)
-
-    def _listr(args, expr):
-        if not isinstance(expr, PlannerList):
-            return False
-        if args:
-            return match(args[0], len(expr.elements), interp)
-        return True
-
-    matchers["LISTR"] = _listr
+    _type("LIST",  lambda e: isinstance(e, PlannerList) and e.kind == BracketKind.ROUND, True)
+    _type("LISTP", lambda e: isinstance(e, PlannerList) and e.kind == BracketKind.SQUARE, True)
+    _type("LISTS", lambda e: isinstance(e, PlannerList) and e.kind == BracketKind.ANGLE, True)
+    _type("LISTR", lambda e: isinstance(e, PlannerList), True)
 
     def _var_ref_check(prefix: str):
         def check(expr) -> bool:

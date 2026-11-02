@@ -1,4 +1,5 @@
 from src.interpreter.values import NIL, _is_true, Value
+from src.interpreter.control_flow import ControlRequest, EvalStream
 from src.interpreter.errors import PlannerRuntimeError
 from src.parser.ast.nodes import IdentNode
 
@@ -7,7 +8,7 @@ def do_(raw_args: list, interp):
     yield from interp._eval_prog_bt([], {}, {}, raw_args)
 
 
-def loop(raw_args: list, interp) -> Value:
+def loop(raw_args: list, interp) -> EvalStream:
     if len(raw_args) < 2:
         raise PlannerRuntimeError("LOOP: нужны x, l и тело")
     param_node = raw_args[0]
@@ -15,32 +16,39 @@ def loop(raw_args: list, interp) -> Value:
         raise PlannerRuntimeError("LOOP: первый аргумент должен быть именем переменной")
     param_name = param_node.name
     body_nodes = raw_args[2:]
-    lst = interp.eval_form(raw_args[1])
+    lst = (yield from interp.eval_first_bt(raw_args[1]))
     if not hasattr(lst, 'elements'):
         raise PlannerRuntimeError("LOOP: второй аргумент должен быть списком")
     if not lst.elements:
-        return NIL
+        yield NIL
+        return
     interp.env.push_frame([param_name], {})
     try:
         last_val: Value = NIL
         for elem in lst.elements:
             interp.env.set_local(param_name, elem)
             for body_expr in body_nodes:
-                last_val = interp.eval_form(body_expr)
-        return last_val
+                last_val = (yield from interp.eval_first_bt(body_expr))
     finally:
         interp.env.pop_frame()
+    yield last_val
 
 
 def _for_bt_chain(body_nodes, param_name, i, n, interp):
     interp.env.set_local(param_name, i)
-    for body_val in interp._eval_body_bt(body_nodes):
-        if i == n:
-            yield body_val
-        else:
-            for rest_val in _for_bt_chain(body_nodes, param_name, i + 1, n, interp):
-                yield rest_val
-        interp.env.set_local(param_name, i)
+    gen = interp._eval_body_bt(body_nodes)
+    try:
+        for body_val in gen:
+            if isinstance(body_val, ControlRequest):
+                yield body_val
+                continue
+            if i == n:
+                yield body_val
+            else:
+                yield from _for_bt_chain(body_nodes, param_name, i + 1, n, interp)
+            interp.env.set_local(param_name, i)
+    finally:
+        gen.close()
 
 
 def for_(raw_args: list, interp):
@@ -51,7 +59,7 @@ def for_(raw_args: list, interp):
         raise PlannerRuntimeError("FOR: первый аргумент должен быть именем переменной")
     param_name = param_node.name
     body_nodes = raw_args[2:]
-    n_val = interp.eval_form(raw_args[1])
+    n_val = (yield from interp.eval_first_bt(raw_args[1]))
     if not isinstance(n_val, (int, float)):
         raise PlannerRuntimeError("FOR: второй аргумент должен быть числом")
     n = int(round(n_val))
@@ -65,33 +73,33 @@ def for_(raw_args: list, interp):
         interp.env.pop_frame()
 
 
-def while_(raw_args: list, interp) -> Value:
+def while_(raw_args: list, interp) -> EvalStream:
     if not raw_args:
         raise PlannerRuntimeError("WHILE: нужны условие и тело")
     pred_node  = raw_args[0]
     body_nodes = raw_args[1:]
-    while _is_true(interp.eval_form(pred_node)):
+    while _is_true((yield from interp.eval_first_bt(pred_node))):
         for body_expr in body_nodes:
-            interp.eval_form(body_expr)
-    return NIL
+            (yield from interp.eval_first_bt(body_expr))
+    yield NIL
 
 
-def until(raw_args: list, interp) -> Value:
+def until(raw_args: list, interp) -> EvalStream:
     if not raw_args:
         raise PlannerRuntimeError("UNTIL: нужны тело и условие")
     body_nodes = raw_args[:-1]
     pred_node  = raw_args[-1]
     while True:
         for body_expr in body_nodes:
-            interp.eval_form(body_expr)
-        if _is_true(interp.eval_form(pred_node)):
+            (yield from interp.eval_first_bt(body_expr))
+        if _is_true((yield from interp.eval_first_bt(pred_node))):
             break
-    return NIL
+    yield NIL
 
 
 def register(interp) -> None:
     interp._bt_fsubrs["DO"] = lambda raw: do_(raw, interp)
-    interp._fsubrs["LOOP"]  = lambda raw: loop(raw, interp)
+    interp._bt_fsubrs["LOOP"]  = lambda raw: loop(raw, interp)
     interp._bt_fsubrs["FOR"]   = lambda raw: for_(raw, interp)
-    interp._fsubrs["WHILE"] = lambda raw: while_(raw, interp)
-    interp._fsubrs["UNTIL"] = lambda raw: until(raw, interp)
+    interp._bt_fsubrs["WHILE"] = lambda raw: while_(raw, interp)
+    interp._bt_fsubrs["UNTIL"] = lambda raw: until(raw, interp)

@@ -1,4 +1,5 @@
 from src.interpreter.values import NIL, T, Value
+from src.interpreter.functions.utils import as_number
 
 
 def _bool(cond: bool) -> Value:
@@ -14,19 +15,35 @@ def neq(args: list) -> Value:
 
 
 def gt(args: list, interp) -> Value:
-    return _bool(len(args) == 2 and interp._as_number("GT", args[0]) > interp._as_number("GT", args[1]))
+    return _bool(
+        len(args) == 2
+        and as_number("GT", args[0], float_digits=interp._float_digits)
+        > as_number("GT", args[1], float_digits=interp._float_digits)
+    )
 
 
 def ge(args: list, interp) -> Value:
-    return _bool(len(args) == 2 and interp._as_number("GE", args[0]) >= interp._as_number("GE", args[1]))
+    return _bool(
+        len(args) == 2
+        and as_number("GE", args[0], float_digits=interp._float_digits)
+        >= as_number("GE", args[1], float_digits=interp._float_digits)
+    )
 
 
 def lt(args: list, interp) -> Value:
-    return _bool(len(args) == 2 and interp._as_number("LT", args[0]) < interp._as_number("LT", args[1]))
+    return _bool(
+        len(args) == 2
+        and as_number("LT", args[0], float_digits=interp._float_digits)
+        < as_number("LT", args[1], float_digits=interp._float_digits)
+    )
 
 
 def le(args: list, interp) -> Value:
-    return _bool(len(args) == 2 and interp._as_number("LE", args[0]) <= interp._as_number("LE", args[1]))
+    return _bool(
+        len(args) == 2
+        and as_number("LE", args[0], float_digits=interp._float_digits)
+        <= as_number("LE", args[1], float_digits=interp._float_digits)
+    )
 
 
 def register(interp) -> None:

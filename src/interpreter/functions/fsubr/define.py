@@ -1,11 +1,13 @@
-from src.interpreter.functions.spec import PlannerFunction, SimpleParam, ListParams
+from src.interpreter.functions.spec import PlannerFunction, SimpleParam, ListParams, parse_param_spec
 from src.interpreter.functions import codec
-from src.interpreter.values import Value, PlannerList, BracketKind
+from src.interpreter.functions.matching.core import match_bt
+from src.interpreter.control_flow import EvalStream
+from src.interpreter.values import PlannerList, BracketKind
 from src.interpreter.errors import PlannerRuntimeError
 from src.parser.ast.nodes import IdentNode, LListNode
 
 
-def define(raw_args: list, interp) -> Value:
+def define(raw_args: list, interp) -> EvalStream:
     if len(raw_args) != 2:
         raise PlannerRuntimeError(
             "DEFINE: ожидается ровно два аргумента: имя и LAMBDA/KAPPA-выражение"
@@ -23,7 +25,7 @@ def define(raw_args: list, interp) -> Value:
     if not isinstance(keyword, IdentNode) or keyword.name not in ("LAMBDA", "KAPPA"):
         raise PlannerRuntimeError("DEFINE: ожидается ключевое слово LAMBDA или KAPPA")
 
-    params = interp._parse_param_spec(var_node)
+    params = parse_param_spec(var_node)
 
     if keyword.name == "LAMBDA":
         interp._functions[fn_name] = PlannerFunction(name=fn_name, params=params, body=body_node)
@@ -32,13 +34,10 @@ def define(raw_args: list, interp) -> Value:
     else:
         raise PlannerRuntimeError("DEFINE: ожидается ключевое слово LAMBDA или KAPPA")
 
-    return fn_name
+    yield fn_name
 
 
 def _make_kappa_matcher(fn_name, params, body, interp):
-    # Ожидается что сопоставитель вызывается не часто
-    from src.interpreter.functions.matching import match
-
     def matcher(raw_args, expr):
         if isinstance(params, SimpleParam):
             if params.unevaluated:
@@ -48,7 +47,7 @@ def _make_kappa_matcher(fn_name, params, body, interp):
                 )
             else:
                 bound_val = PlannerList(
-                    elements=[interp.eval_form(a) for a in raw_args],
+                    elements=(yield from interp._eval_first_args_bt(raw_args)),
                     kind=BracketKind.ROUND,
                 )
             declared = [params.name]
@@ -65,13 +64,13 @@ def _make_kappa_matcher(fn_name, params, body, interp):
                 if unevaluated:
                     bindings[pname] = codec.ast_to_value(arg_node)
                 else:
-                    bindings[pname] = interp.eval_form(arg_node)
+                    bindings[pname] = (yield from interp.eval_first_bt(arg_node))
         else:
             raise PlannerRuntimeError("KAPPA: неверная спецификация параметров")
 
         interp.env.push_frame(declared, bindings)
         try:
-            return match(body, expr, interp)
+            return (yield from match_bt(body, expr, interp))
         finally:
             interp.env.pop_frame()
 
@@ -79,4 +78,4 @@ def _make_kappa_matcher(fn_name, params, body, interp):
 
 
 def register(interp) -> None:
-    interp._fsubrs["DEFINE"] = lambda raw: define(raw, interp)
+    interp._bt_fsubrs["DEFINE"] = lambda raw: define(raw, interp)

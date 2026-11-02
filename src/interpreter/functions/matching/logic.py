@@ -1,13 +1,13 @@
 from src.parser.ast.nodes import LListNode, IdentNode
 from src.interpreter.errors import PlannerRuntimeError
-from src.interpreter.functions.matching.core import match
+from src.interpreter.functions.matching.core import match_bt
 
 
 def _non(args, expr, interp):
     if not args:
         raise PlannerRuntimeError("NON: нужен образец")
     mark = interp._trail.mark()
-    result = match(args[0], expr, interp)
+    result = (yield from match_bt(args[0], expr, interp))
     interp._trail.undo_to(mark)
     return not result
 
@@ -15,7 +15,7 @@ def _non(args, expr, interp):
 def _et(args, expr, interp):
     for pat in args:
         mark = interp._trail.mark()
-        if not match(pat, expr, interp):
+        if not (yield from match_bt(pat, expr, interp)):
             interp._trail.undo_to(mark)
             return False
     return True
@@ -34,7 +34,7 @@ def _same(args, expr, interp):
     ]
     interp.env.push_frame(local_names, {})
     try:
-        return _et(pat_args, expr, interp)
+        return (yield from _et(pat_args, expr, interp))
     finally:
         interp.env.pop_frame()
 
@@ -42,7 +42,7 @@ def _same(args, expr, interp):
 def _aut(args, expr, interp):
     for pat in args:
         mark = interp._trail.mark()
-        if match(pat, expr, interp):
+        if (yield from match_bt(pat, expr, interp)):
             return True
         interp._trail.undo_to(mark)
     return False
@@ -55,9 +55,9 @@ def _when(args, expr, interp):
         cond_pat = clause_node.elements[0]
         body_pats = clause_node.elements[1:]
         mark = interp._trail.mark()
-        if match(cond_pat, expr, interp):
+        if (yield from match_bt(cond_pat, expr, interp)):
             for bp in body_pats:
-                if not match(bp, expr, interp):
+                if not (yield from match_bt(bp, expr, interp)):
                     interp._trail.undo_to(mark)
                     return False
             return True
@@ -67,7 +67,7 @@ def _when(args, expr, interp):
 
 def register(matchers: dict, interp) -> None:
     matchers["NON"]  = lambda args, expr: _non(args, expr, interp)
-    matchers["ET"]   = lambda args, expr: _et(args, expr, interp)
+    matchers["ET"]   = lambda args, expr: (yield from _et(args, expr, interp))
     matchers["SAME"] = lambda args, expr: _same(args, expr, interp)
     matchers["AUT"]  = lambda args, expr: _aut(args, expr, interp)
     matchers["WHEN"] = lambda args, expr: _when(args, expr, interp)

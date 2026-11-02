@@ -71,6 +71,112 @@ class TestPipelineBasics(unittest.TestCase):
         self.assertEqual(_eval("[REAL 3.14]"), "T")
 
 
+class TestPipelineDatabase(unittest.TestCase):
+
+    def test_assert_then_search(self):
+        src = "[ASSERT (AT BOX R1)]\n[SEARCH (AT BOX R1)]"
+        self.assertEqual(_eval(src), "(AT BOX R1)")
+
+    def test_assert_evaluates_variables_in_fact(self):
+        src = """
+        [PROG ((ROOM R2))
+            [ASSERT (AT BOX .ROOM)]
+            [SEARCH (AT BOX R2)]]
+        """
+        self.assertEqual(_eval(src), "(AT BOX R2)")
+
+    def test_data_then_collect_all_matches(self):
+        src = """
+        [DATA (BOX A) (ROOM R1) (BOX B) (BOX C)]
+        [FIND ALL (X) .X [SEARCH (BOX *X)]]
+        """
+        self.assertEqual(_eval(src), "(C B A)")
+
+    def test_duplicate_assert_does_not_add_another_match(self):
+        src = """
+        [DATA (BOX A)]
+        [ASSERT (BOX A)]
+        [FIND ALL (X) .X [SEARCH (BOX *X)]]
+        """
+        self.assertEqual(_eval(src), "(A)")
+
+    def test_db_search_filters_properties_and_restores_rejected_bindings(self):
+        src = """
+        [DB (STUDENT PETROV) (COURSE 4 FACULTY VMK)
+            (STUDENT IVANOV) (COURSE 5 FACULTY MECHMAT)]
+        [PROG (X Y)
+            [SEARCH (STUDENT *X)
+                (TEST COURSE *Y FACULTY [NON VMK])]
+            (.X .Y)]
+        """
+        self.assertEqual(_eval(src), "(IVANOV 5)")
+
+    def test_assert_with_properties_then_search(self):
+        src = """
+        [ASSERT (BOX A) (WITH COLOUR BLUE SIZE 3)]
+        [ASSERT (BOX B) (WITH COLOUR RED SIZE 7)]
+        [PROG (X SIZE)
+            [SEARCH (BOX *X) (TEST COLOUR RED SIZE [ET [GE 5] *SIZE])]
+            (.X .SIZE)]
+        """
+        self.assertEqual(_eval(src), "(B 7)")
+
+    def test_search_resumes_when_continuation_fails(self):
+        src = """
+        [DATA (BOX A) (BOX B)]
+        [PROG (X)
+            [SEARCH (BOX *X)]
+            [UNFALSE [NEQ .X A]]
+            .X]
+        """
+        self.assertEqual(_eval(src), "B")
+
+    def test_search1_returns_only_first_match(self):
+        src = """
+        [DATA (BOX A) (BOX B)]
+        [FIND ALL (X) .X [SEARCH1 (BOX *X)]]
+        """
+        self.assertEqual(_eval(src), "(A)")
+
+    def test_search_reports_missing_fact(self):
+        self.assertEqual(_eval("[DATA (BOX A)]\n[SEARCH (BOX B)]"),
+                         "=НЕУСПЕХ= SEARCH")
+
+    def test_search_decodes_stored_pattern(self):
+        src = """
+        [DATA (BOX A) (BOX B)]
+        [PROG (P X)
+            [SET P [QUOTE (BOX *X)]]
+            [SEARCH .P]
+            .X]
+        """
+        self.assertEqual(_eval(src), "A")
+
+    def test_search_matches_nested_fact_with_variable_predicate(self):
+        src = """
+        [DATA (LOCATION (BOX A) R1) (OWNER (BOX A) IVANOV)]
+        [FIND ALL (P X) (.P .X) [SEARCH (*P (BOX A) *X)]]
+        """
+        self.assertEqual(_eval(src), "((OWNER IVANOV) (LOCATION R1))")
+
+    def test_assert_is_rolled_back_before_subsequent_search(self):
+        src = "[GATE [ASSERT (BOX A)] [FAIL]]\n[SEARCH (BOX A)]"
+        self.assertEqual(_eval(src), "=НЕУСПЕХ= SEARCH")
+
+    def test_passert_survives_failure_and_is_searchable(self):
+        src = "[GATE [PASSERT (BOX A)] [FAIL]]\n[SEARCH (BOX A)]"
+        self.assertEqual(_eval(src), "(BOX A)")
+
+    def test_search_excludes_facts_added_during_enumeration(self):
+        src = """
+        [DATA (BOX A) (BOX B)]
+        [FIND ALL (X) .X
+            [SEARCH (BOX *X)]
+            [PASSERT (BOX C)]]
+        """
+        self.assertEqual(_eval(src), "(B A)")
+
+
 class TestPipelineArithmetic(unittest.TestCase):
 
     def test_addition_multi(self):

@@ -8,7 +8,7 @@ from src.parser import (
     ProgramNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
 )
-from src.parser.graph import Graph
+from src.parser.graph import Graph, Bracket
 from src.parser.grammar.planner_grammar import PLANNER_GRAMMAR
 
 
@@ -261,7 +261,6 @@ class TestGrammarProtoRoundTrip(unittest.TestCase):
         self.assertEqual(len(self._original.edges), len(loaded.edges))
 
     def test_bracket_types_preserved(self):
-        from src.parser.graph import Bracket
         loaded = self._load_roundtrip()
         orig_types = sorted(b.type.name for b in self._original.brackets)
         load_types = sorted(b.type.name for b in loaded.brackets)

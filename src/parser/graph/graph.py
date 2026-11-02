@@ -64,7 +64,7 @@ class Graph:
     first            : dict[Id, frozenset[str]]   = field(init=False, default=None)
 
     # ------------------------------------------------------------------
-    # Public methods
+    # Публичные методы
     # ------------------------------------------------------------------
 
     @property
@@ -91,7 +91,7 @@ class Graph:
 
     @staticmethod
     def from_grammar(grammar: Grammar) -> "Graph":
-        """Build a context-free L-graph from a CFG"""
+        """Строит L-граф по контекстно-свободной грамматике."""
 
         def vertex_name_beg(nt: str) -> str:
             return f"{nt}_beg"
@@ -161,7 +161,7 @@ class Graph:
         return graph
 
     # ------------------------------------------------------------------
-    # Inner methods
+    # Внутренние методы
     # ------------------------------------------------------------------
 
     def _add_vertex(self, vertex: Vertex) -> "Graph":
@@ -212,7 +212,7 @@ class Graph:
         return first
 
     # ------------------------------------------------------------------
-    # Serialization
+    # Сериализация
     # ------------------------------------------------------------------
 
     def dump(self, file_path: str) -> None:
@@ -329,7 +329,7 @@ class Graph:
         return g
 
     # ------------------------------------------------------------------
-    # Visualization
+    # Визуализация
     # ------------------------------------------------------------------
 
     def visualize(self, filename: str = "lgraph", view: bool = True) -> None:

@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from typing import Generator
+
+from src.interpreter.control_flow import ControlRequest
+
 from src.parser.ast.nodes import (
     FormNode, IdentNode, IntNode, FloatNode, ScaleNode,
     VarRefNode, VarMode, LListNode, CallNode,
@@ -9,11 +13,7 @@ from src.interpreter.values import BracketKind, PlannerList, ScaleValue
 
 
 def _bind(name: str, val, interp) -> None:
-    if interp.env.has_value(name):
-        old = interp.env.get_local(name)
-        interp._trail.push_undo(lambda n=name, o=old: interp.env.set_local(n, o))
-    else:
-        interp._trail.push_undo(lambda n=name: interp.env.unassign(n))
+    interp._record_undo_local(name)
     interp.env.set_local(name, val)
 
 
@@ -21,11 +21,11 @@ def _is_segmented(pat: FormNode) -> bool:
     if isinstance(pat, VarRefNode):
         return pat.segmented
     if isinstance(pat, CallNode):
-        return pat.segmented  # [] has segmented=False, <> has segmented=True
+        return pat.segmented  # для [] признак segmented=False, для <> признак segmented=True
     return False
 
 
-def match(pat: FormNode, expr, interp) -> bool:
+def match_bt(pat: FormNode, expr, interp) -> Generator[ControlRequest, None, bool]:
     if isinstance(pat, IdentNode):
         return expr == pat.name
 
@@ -59,12 +59,12 @@ def match(pat: FormNode, expr, interp) -> bool:
             if len(pat.elements) != len(expr.elements):
                 return False
             for p, e in zip(pat.elements, expr.elements):
-                if not match(p, e, interp):
+                if not (yield from match_bt(p, e, interp)):
                     return False
             return True
-        return match_list(pat.elements, expr.elements, 0, 0, interp)
+        return (yield from match_list_bt(pat.elements, expr.elements, 0, 0, interp))
 
-    # [] — wildcard: совпадает с любым одиночным элементом
+    # [] — образец, совпадающий с любым одиночным элементом
     if (
         isinstance(pat, CallNode)
         and not pat.args
@@ -76,40 +76,40 @@ def match(pat: FormNode, expr, interp) -> bool:
     if isinstance(pat, CallNode) and isinstance(pat.head, IdentNode):
         matcher_name = pat.head.name
         if matcher_name in interp._matchers:
-            return interp._matchers[matcher_name](pat.args, expr)
-        val = interp.eval_form(pat)
+            return (yield from interp._matchers[matcher_name](pat.args, expr))
+        val = (yield from interp.eval_first_bt(pat))
         return val == expr
 
     raise PlannerRuntimeError(f"Неизвестный сопоставитель: {pat!r}")
 
 
-def match_list(
+def match_list_bt(
     pats: list[FormNode],
     items: list,
     pi: int,
     ii: int,
     interp,
-) -> bool:
+) -> Generator[ControlRequest, None, bool]:
     if pi == len(pats) and ii == len(items):
         return True
     if pi == len(pats):
         return False
     if ii == len(items):
-        return _all_wildcards(pats, pi, items, ii, interp)
+        return (yield from _all_wildcards(pats, pi, items, ii, interp))
 
     pat = pats[pi]
     if _is_segmented(pat):
-        return _match_segment(pat, pats, items, pi, ii, interp)
+        return (yield from _match_segment(pat, pats, items, pi, ii, interp))
     else:
         mark = interp._trail.mark()
-        if match(pat, items[ii], interp):
-            if match_list(pats, items, pi + 1, ii + 1, interp):
+        if (yield from match_bt(pat, items[ii], interp)):
+            if (yield from match_list_bt(pats, items, pi + 1, ii + 1, interp)):
                 return True
         interp._trail.undo_to(mark)
         return False
 
 
-def _try_bind_segment(seg_pat: FormNode, seg_list, interp) -> bool:
+def _try_bind_segment(seg_pat: FormNode, seg_list, interp) -> Generator[ControlRequest, None, bool]:
     if isinstance(seg_pat, VarRefNode):
         if seg_pat.mode == VarMode.ASSIGN:
             _bind(seg_pat.name, seg_list, interp)
@@ -131,7 +131,7 @@ def _try_bind_segment(seg_pat: FormNode, seg_list, interp) -> bool:
         if isinstance(seg_pat.head, IdentNode):
             name = seg_pat.head.name
             if name in interp._matchers:
-                return interp._matchers[name](seg_pat.args, seg_list)
+                return (yield from interp._matchers[name](seg_pat.args, seg_list))
         return False
 
     return False
@@ -144,7 +144,7 @@ def _match_segment(
     pi: int,
     ii: int,
     interp,
-) -> bool:
+) -> Generator[ControlRequest, None, bool]:
     max_remaining = len(items) - ii
     min_needed = sum(1 for p in pats[pi + 1:] if not _is_segmented(p))  # грубо
     max_seg_len = max_remaining - min_needed
@@ -154,8 +154,8 @@ def _match_segment(
         segment = items[ii: ii + seg_len]
         seg_list = PlannerList(elements=list(segment), kind=BracketKind.ROUND)
 
-        if _try_bind_segment(seg_pat, seg_list, interp):
-            if match_list(pats, items, pi + 1, ii + seg_len, interp):
+        if (yield from _try_bind_segment(seg_pat, seg_list, interp)):
+            if (yield from match_list_bt(pats, items, pi + 1, ii + seg_len, interp)):
                 return True
 
         interp._trail.undo_to(mark)
@@ -169,7 +169,7 @@ def _all_wildcards(
     items: list,
     ii: int,
     interp,
-) -> bool:
+) -> Generator[ControlRequest, None, bool]:
     empty = PlannerList(elements=[], kind=BracketKind.ROUND)
     for p in pats[pi:]:
         if not _is_segmented(p):
@@ -193,7 +193,7 @@ def _all_wildcards(
                 pass
             else:
                 if isinstance(p.head, IdentNode) and p.head.name in interp._matchers:
-                    if not interp._matchers[p.head.name](p.args, empty):
+                    if not (yield from interp._matchers[p.head.name](p.args, empty)):
                         return False
                 else:
                     return False

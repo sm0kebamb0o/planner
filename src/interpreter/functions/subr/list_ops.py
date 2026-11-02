@@ -1,11 +1,12 @@
 from src.interpreter.values import NIL, T, PlannerList, Value
 from src.interpreter.errors import PlannerRuntimeError
+from src.interpreter.functions.utils import as_int, as_list, check_arity
 
 
 def elem(args: list, interp) -> Value:
-    interp._check_arity("ELEM", args, 2)
-    n   = interp._as_int("ELEM", args[0])
-    lst = interp._as_list("ELEM", args[1])
+    check_arity("ELEM", args, 2)
+    n   = as_int("ELEM", args[0], float_digits=interp._float_digits)
+    lst = as_list("ELEM", args[1], float_digits=interp._float_digits)
     ln  = len(lst.elements)
     if n == 0 or abs(n) > ln:
         raise PlannerRuntimeError(f"ELEM: индекс {n} за пределами списка длины {ln}")
@@ -23,9 +24,9 @@ def index(args: list, interp) -> Value:
 
 
 def rest(args: list, interp) -> Value:
-    interp._check_arity("REST", args, 2)
-    n   = interp._as_int("REST", args[0])
-    lst = interp._as_list("REST", args[1])
+    check_arity("REST", args, 2)
+    n   = as_int("REST", args[0], float_digits=interp._float_digits)
+    lst = as_list("REST", args[1], float_digits=interp._float_digits)
     ln  = len(lst.elements)
     if abs(n) > ln:
         raise PlannerRuntimeError(f"REST: |n|={abs(n)} превышает длину списка {ln}")
@@ -34,9 +35,9 @@ def rest(args: list, interp) -> Value:
 
 
 def head(args: list, interp) -> Value:
-    interp._check_arity("HEAD", args, 2)
-    n   = interp._as_int("HEAD", args[0])
-    lst = interp._as_list("HEAD", args[1])
+    check_arity("HEAD", args, 2)
+    n   = as_int("HEAD", args[0], float_digits=interp._float_digits)
+    lst = as_list("HEAD", args[1], float_digits=interp._float_digits)
     ln  = len(lst.elements)
     if abs(n) > ln:
         raise PlannerRuntimeError(f"HEAD: |n|={abs(n)} превышает длину списка {ln}")
@@ -45,14 +46,14 @@ def head(args: list, interp) -> Value:
 
 
 def length(args: list, interp) -> Value:
-    interp._check_arity("LENGTH", args, 1)
-    return len(interp._as_list("LENGTH", args[0]).elements)
+    check_arity("LENGTH", args, 1)
+    return len(as_list("LENGTH", args[0], float_digits=interp._float_digits).elements)
 
 
 def memb(args: list, interp) -> Value:
-    interp._check_arity("MEMB", args, 2)
+    check_arity("MEMB", args, 2)
     e   = args[0]
-    lst = interp._as_list("MEMB", args[1])
+    lst = as_list("MEMB", args[1], float_digits=interp._float_digits)
     for i, elem_ in enumerate(lst.elements, start=1):
         if elem_ == e:
             return i
@@ -60,7 +61,7 @@ def memb(args: list, interp) -> Value:
 
 
 def fin(args: list, interp) -> Value:
-    interp._check_arity("FIN", args, 2)
+    check_arity("FIN", args, 2)
     i1, i2 = args[0], args[1]
     if not isinstance(i1, str) or not isinstance(i2, str):
         raise PlannerRuntimeError("FIN: аргументы должны быть именами переменных")
